@@ -10,6 +10,7 @@ import { usePersistentState, useSystemPrefersDark } from "./lib/preferences";
 import { useFontVariable } from "./lib/useFontVariable";
 import { installNativeMenu, type NativeMenuActions, type NativeMenuHandle, type NativeMenuState } from "./lib/nativeMenu";
 import { openDocumentInNewWindow } from "./lib/windowManager";
+import { placeCursorNearClick } from "./lib/placeCursorNearClick";
 import { FontPromptModal, type FontPromptRequest } from "./FontPromptModal";
 import { DocumentHeader } from "./DocumentHeader";
 import "./App.css";
@@ -111,6 +112,22 @@ function App() {
       }
     },
     [uri]
+  );
+
+  const handleEditorSurfaceMouseDown = useCallback(
+    (event: React.MouseEvent<HTMLElement>) => {
+      // Source mode's textarea already fills the surface and handles this
+      // natively; only the rich-text contentEditable box leaves dead space.
+      if (mode !== "rich" || event.button !== 0) return;
+      const surface = event.currentTarget;
+      const target = event.target as Node;
+      const contentEditableEl = surface.querySelector<HTMLElement>('[contenteditable="true"]');
+      if (contentEditableEl?.contains(target)) return;
+      if (placeCursorNearClick(surface, event.clientX, event.clientY)) {
+        event.preventDefault();
+      }
+    },
+    [mode]
   );
 
   const setFont = useCallback(
@@ -231,7 +248,7 @@ function App() {
         error={renameError}
         onRename={(newName) => void handleRename(newName)}
       />
-      <main className="editor-surface">
+      <main className="editor-surface" onMouseDown={handleEditorSurfaceMouseDown}>
         {/* MDXEditor's `markdown` prop (and its plugin list, including jsxPlugin's
             componentRegistry-derived descriptors) only seed initial state and
             don't react to later prop changes, so file/mode/registry changes
