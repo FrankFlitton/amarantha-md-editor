@@ -9,6 +9,7 @@ import { createImageHandlers } from "./lib/imageHost";
 import { usePersistentState, useSystemPrefersDark } from "./lib/preferences";
 import { useFontVariable } from "./lib/useFontVariable";
 import { installNativeMenu, type NativeMenuActions, type NativeMenuHandle, type NativeMenuState } from "./lib/nativeMenu";
+import { openDocumentInNewWindow } from "./lib/windowManager";
 import { FontPromptModal, type FontPromptRequest } from "./FontPromptModal";
 import { DocumentHeader } from "./DocumentHeader";
 import "./App.css";
@@ -53,10 +54,8 @@ function App() {
   const effectiveMode = modePreference === "system" ? (systemPrefersDark ? "dark" : "light") : modePreference;
   const effectiveThemeId = themeId(effectiveFamily, effectiveMode);
 
-  const handleOpen = useCallback(async () => {
-    const selected = await pickMarkdownFileToOpen();
-    if (!selected) return;
-    const doc = await desktopHost.readDocument(selected);
+  const loadDocument = useCallback(async (targetUri: string) => {
+    const doc = await desktopHost.readDocument(targetUri);
     setUri(doc.uri);
     setText(doc.text);
     setSavedText(doc.text);
@@ -64,6 +63,20 @@ function App() {
     setRepoThemeFamily(theme);
     setComponentRegistry(componentRegistry);
   }, []);
+
+  const handleOpen = useCallback(async () => {
+    const selected = await pickMarkdownFileToOpen();
+    if (!selected) return;
+    // A window with a document already open (saved or not) or an unsaved
+    // untitled draft keeps its content — the new file opens in its own
+    // window instead of clobbering it. Only a blank, untouched window
+    // reuses itself.
+    if (uri !== null || dirty) {
+      await openDocumentInNewWindow(selected);
+      return;
+    }
+    await loadDocument(selected);
+  }, [uri, dirty, loadDocument]);
 
   const handleSave = useCallback(async () => {
     let targetUri = uri;
@@ -115,11 +128,20 @@ function App() {
   );
 
   useEffect(() => {
+    // Windows opened via openDocumentInNewWindow carry the file to load in
+    // an `open` query param; loadDocument resolves workspace config for
+    // that file itself, so skip the generic repo-root resolution below to
+    // avoid a race that could overwrite it with the wrong theme/registry.
+    const openUri = new URLSearchParams(window.location.search).get("open");
+    if (openUri) {
+      void loadDocument(openUri);
+      return;
+    }
     void desktopHost.resolveWorkspaceConfig("").then(({ theme, componentRegistry }) => {
       setRepoThemeFamily(theme);
       setComponentRegistry(componentRegistry);
     });
-  }, []);
+  }, [loadDocument]);
 
   useEffect(() => {
     // A missing core:window:allow-set-title capability makes this reject
