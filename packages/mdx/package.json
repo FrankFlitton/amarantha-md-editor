@@ -1,0 +1,19 @@
+{
+  "name": "@amarantha/mdx",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@amarantha/core": "*"
+  },
+  "devDependencies": {
+    "typescript": "~5.8.3",
+    "vitest": "^3.0.0"
+  }
+}

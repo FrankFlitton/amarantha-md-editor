@@ -1,0 +1,50 @@
+/*
+ * Maps MDXEditor's own semantic CSS variables (from @mdxeditor/editor's
+ * style.css) onto Amarantha's --am-* tokens, once, statically — not per
+ * theme. Confirmed against the shipped stylesheet: "mdxeditor" is a stable
+ * unhashed class on the editor root, every one of MDXEditor's own rules
+ * reads only these semantic aliases (never the raw Radix scale vars
+ * directly), and the alias-defining rule has specificity (0,1,0). This rule
+ * (0,2,0) reliably wins regardless of import order or MDXEditor's own
+ * .dark/.light-theme classes.
+ */
+.amarantha-app .mdxeditor {
+  /* MDXEditor's own font tokens — separate from, and not derived from, its
+     color semantic aliases below. Without this, --am-font-sans/mono never
+     reach the actual editor content: MDXEditor applies `font-family:
+     var(--font-body)` at this same root scope using its own hardcoded
+     default, not an inherited value. */
+  --font-body: var(--am-font-sans);
+  --font-mono: var(--am-font-mono);
+
+  --baseBg: var(--am-surface);
+  --baseBgSubtle: var(--am-surface);
+  --baseBgHover: var(--am-border);
+  --baseBgActive: var(--am-border);
+  --baseText: var(--am-text);
+  --baseTextContrast: var(--am-text);
+  --baseBorder: var(--am-border);
+  --baseBorderHover: var(--am-accent);
+  --baseSolid: var(--am-text-muted);
+  --baseSolidHover: var(--am-text);
+
+  --accentBase: var(--am-surface);
+  --accentBg: var(--am-surface);
+  --accentBgSubtle: var(--am-surface);
+  --accentBorder: var(--am-accent);
+  --accentSolid: var(--am-accent);
+  --accentSolidHover: var(--am-accent);
+  --accentText: var(--am-accent);
+  --accentTextContrast: var(--am-accent-text);
+
+  --admonitionInfoBg: var(--am-surface);
+  --admonitionInfoBorder: var(--am-accent);
+  --admonitionTipBg: var(--am-surface);
+  --admonitionTipBorder: var(--am-accent);
+  --admonitionCautionBg: var(--am-surface);
+  --admonitionCautionBorder: var(--am-accent);
+  --admonitionDangerBg: var(--am-surface);
+  --admonitionDangerBorder: var(--am-accent);
+  --admonitionNoteBg: var(--am-surface);
+  --admonitionNoteBorder: var(--am-accent);
+}

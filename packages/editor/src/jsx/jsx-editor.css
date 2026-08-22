@@ -1,0 +1,67 @@
+.amarantha-jsx-editor {
+  border: 1px solid var(--am-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 8px 0;
+  background: var(--am-surface);
+}
+
+.amarantha-jsx-editor-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--am-text-muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.amarantha-jsx-prop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.amarantha-jsx-prop-label {
+  flex: 0 0 120px;
+  font-size: 13px;
+  color: var(--am-text-muted);
+}
+
+.amarantha-jsx-prop-required {
+  color: var(--am-accent);
+  margin-left: 2px;
+}
+
+.amarantha-jsx-prop input[type="text"],
+.amarantha-jsx-prop input[type="number"],
+.amarantha-jsx-prop select {
+  flex: 1;
+  padding: 4px 6px;
+  border: 1px solid var(--am-border);
+  border-radius: 4px;
+  font-size: 13px;
+  background: var(--am-bg);
+  color: var(--am-text);
+}
+
+.amarantha-jsx-prop-expression {
+  flex: 1;
+  min-height: 60px;
+  padding: 6px;
+  border: 1px solid var(--am-border);
+  border-radius: 4px;
+  font-size: 12px;
+  resize: vertical;
+  background: var(--am-bg);
+  color: var(--am-text);
+}
+
+.amarantha-jsx-unknown {
+  border: 1px dashed var(--am-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 8px 0;
+  font-size: 13px;
+  color: var(--am-text-muted);
+}

@@ -1,0 +1,23 @@
+/*
+ * Maps Tailwind Typography's --tw-prose-* variables onto --am-* tokens,
+ * once, statically. No prose-invert / dark: needed — our own [data-theme]
+ * switch already drives every --am-* value, so prose content follows all
+ * themes automatically.
+ */
+.amarantha-prose.prose {
+  --tw-prose-body: var(--am-text);
+  --tw-prose-headings: var(--am-text);
+  --tw-prose-links: var(--am-accent);
+  --tw-prose-bold: var(--am-text);
+  --tw-prose-counters: var(--am-text-muted);
+  --tw-prose-bullets: var(--am-text-muted);
+  --tw-prose-hr: var(--am-border);
+  --tw-prose-quotes: var(--am-text);
+  --tw-prose-quote-borders: var(--am-border);
+  --tw-prose-captions: var(--am-text-muted);
+  --tw-prose-code: var(--am-accent);
+  --tw-prose-pre-code: var(--am-text);
+  --tw-prose-pre-bg: var(--am-surface);
+  --tw-prose-th-borders: var(--am-border);
+  --tw-prose-td-borders: var(--am-border);
+}

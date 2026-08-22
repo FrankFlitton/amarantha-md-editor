@@ -1,0 +1,128 @@
+/*
+ * Amarantha theme tokens. Each theme is `[data-theme="<id>"]` on the app
+ * root and defines the same 7-variable set: --am-bg/surface/border/text/
+ * text-muted/accent/accent-text. See docs/theming-and-config-plan.md §1 for
+ * the full table these values come from.
+ */
+
+:root:not([data-theme]) {
+  --am-bg: #fbfbfa;
+  --am-surface: #f3f2ef;
+  --am-border: #e5e5e3;
+  --am-text: #0f0f0f;
+  --am-text-muted: #6b6b68;
+  --am-accent: #d97757;
+  --am-accent-text: #fbfbfa;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --am-bg: #1e1e1c;
+    --am-surface: #232321;
+    --am-border: #3a3a37;
+    --am-text: #f0f0f0;
+    --am-text-muted: #a3a39e;
+    --am-accent: #d97757;
+    --am-accent-text: #1e1e1c;
+  }
+}
+
+[data-theme="ember-light"] {
+  --am-bg: #fbfbfa;
+  --am-surface: #f3f2ef;
+  --am-border: #e5e5e3;
+  --am-text: #0f0f0f;
+  --am-text-muted: #6b6b68;
+  --am-accent: #d97757;
+  --am-accent-text: #fbfbfa;
+}
+
+[data-theme="ember-dark"] {
+  --am-bg: #1e1e1c;
+  --am-surface: #232321;
+  --am-border: #3a3a37;
+  --am-text: #f0f0f0;
+  --am-text-muted: #a3a39e;
+  --am-accent: #d97757;
+  --am-accent-text: #1e1e1c;
+}
+
+[data-theme="minimal-light"] {
+  --am-bg: #ffffff;
+  --am-surface: #f7f7f7;
+  --am-border: #e3e3e3;
+  --am-text: #171717;
+  --am-text-muted: #767676;
+  --am-accent: #3f3f46;
+  --am-accent-text: #ffffff;
+}
+
+[data-theme="minimal-dark"] {
+  --am-bg: #121212;
+  --am-surface: #1a1a1a;
+  --am-border: #2e2e2e;
+  --am-text: #e8e8e8;
+  --am-text-muted: #9a9a9a;
+  --am-accent: #a1a1aa;
+  --am-accent-text: #121212;
+}
+
+[data-theme="solarized-light"] {
+  --am-bg: #fdf6e3;
+  --am-surface: #eee8d5;
+  --am-border: #93a1a1;
+  --am-text: #657b83;
+  --am-text-muted: #93a1a1;
+  --am-accent: #268bd2;
+  --am-accent-text: #fdf6e3;
+}
+
+[data-theme="solarized-dark"] {
+  --am-bg: #002b36;
+  --am-surface: #073642;
+  --am-border: #586e75;
+  --am-text: #839496;
+  --am-text-muted: #586e75;
+  --am-accent: #268bd2;
+  --am-accent-text: #002b36;
+}
+
+[data-theme="matrix-light"] {
+  --am-bg: #f2f7f0;
+  --am-surface: #e6efe2;
+  --am-border: #b8d2b6;
+  --am-text: #163318;
+  --am-text-muted: #4a6b4a;
+  --am-accent: #0a7a2f;
+  --am-accent-text: #f2f7f0;
+}
+
+[data-theme="matrix-dark"] {
+  --am-bg: #050705;
+  --am-surface: #0b120b;
+  --am-border: #1e2e1e;
+  --am-text: #c9f2cf;
+  --am-text-muted: #7fae82;
+  --am-accent: #00ff41;
+  --am-accent-text: #050705;
+}
+
+[data-theme="cream-light"] {
+  --am-bg: #faf3e7;
+  --am-surface: #f2e8d8;
+  --am-border: #e0d0b0;
+  --am-text: #3a2e1f;
+  --am-text-muted: #8a7860;
+  --am-accent: #a67c3d;
+  --am-accent-text: #faf3e7;
+}
+
+[data-theme="cream-dark"] {
+  --am-bg: #2b2116;
+  --am-surface: #3a2e1f;
+  --am-border: #5a4a34;
+  --am-text: #f0e3c8;
+  --am-text-muted: #b8a582;
+  --am-accent: #d9a441;
+  --am-accent-text: #2b2116;
+}
