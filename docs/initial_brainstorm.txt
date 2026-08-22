@@ -1,0 +1,728 @@
+
+Hey, so there's something I want, and if it doesn't exist, then we'll code it up over the weekend. So my personal website has a rich Markdown renderer, right? So not just Markdown, but also Mermaid, YouTube embeds, like custom stuff in it, in addition to your typical like bolds, italics, underlines. So my question is, is there a macOS app that is a Markdown file viewer and editor that can do like inline editing, etc.? I noticed that some of them will expose the raw Markdown characters when you click on that part of the text bitmask in a way that causes the text to move around a little bit too much and makes the editing, like actually altering experience, kind of janky, over, you know, like having that raw text in a pop-up or something like that with like Notion-style editor view, like break out into full Markdown mode kind of thing. Then I was having more and more Markdown files, you know, like Markdown, not HTML files, so is there something like that?
+
+Yes. What you’re describing is a real category, usually called live-preview, WYSIWYM, or sometimes hybrid Markdown editing. And there are a few macOS apps that get surprisingly close to your desired interaction.
+
+The important distinction is that you don’t want the Obsidian-ish behavior where clicking into a rendered paragraph suddenly expands **foo**, [link](...), etc. and causes layout reflow. You want the rendered document to remain structurally stable, with an escape hatch into raw Markdown when necessary.
+
+I’d try these before building anything
+Typora is probably the first one I’d install.
+
+It’s explicitly designed around a single document surface rather than editor + preview panes. Markdown syntax is hidden/displayed intelligently, and it supports .md files directly, Mermaid, math, tables, code fences, images, HTML, and custom CSS. 
+
+It’s also quite Mac-friendly: Apple Silicon native, document-based, and you can make it the default application for .md files. 
+
+The catch is your custom blocks. Typora can render Mermaid, but it isn't really an extensible ProseMirror-style editor where you can say, “here is my website's YouTube block, here is my custom callout block, render these with my React components.” That's probably where you'd eventually hit its ceiling.
+
+MarkText is the open-source one I'd investigate.
+
+It does genuine in-place WYSIWYG/live preview rather than a separate preview pane, supports Mermaid/math/etc., has a full source-code mode, and is free/open source. 
+
+More interestingly for you: there are actively modernized 2026 forks of it. One is specifically describing itself as file-first + in-situ WYSIWYG, and has been modernized onto Vue 3/electron-vite. 
+
+That makes MarkText particularly interesting if your reaction is:
+
+“This is 80% right. I'll fork it and add my renderer.”
+
+rather than building the entire editor.
+
+There's also a brand-new one I hadn't seen before called Edmund, and its design goals sound almost comically close to what you're describing.
+
+It's a native Swift macOS app, file-based rather than vault-based, opens arbitrary .md files, and has inline live preview. The author describes the goal as essentially “CotEditor for Markdown.” It's TextKit 2/AppKit, offline, and the extension system is planned rather than mature. 
+
+That last part means I wouldn't bet your workflow on it yet, but this is probably the project I'd watch/fork if native macOS matters to you.
+
+And amusingly, there's another new 2026 project called Marko that explicitly has three modes: WYSIWYG / hybrid / raw Markdown, with Mermaid and math. It's still alpha, though. 
+
+I think your exact idea is still slightly different
+What I hear you describing is closer to:
+
+Finder-backed Notion for .md files.
+
+You double-click:
+
+article.md
+
+and get something like:
+
+My Article
+
+Here is some bold text and a [link].
+
+┌─────────────────────────────┐
+│ YouTube video │
+└─────────────────────────────┘
+
+[rendered as the actual diagram]
+But critically, editing the bold text doesn't suddenly change its width because ** appeared around it.
+
+For ordinary prose, you'd edit the document model directly. For something complicated like Mermaid, click the diagram and get something like an inspector/popover:
+
+Edit Mermaid
+
+graph TD
+A --> B
+B --> C
+
+And perhaps ⌘⇧M flips the entire document into literal Markdown when you need to do surgery.
+
+That interaction model is better than most current Markdown editors for rich/custom Markdown, because it treats Markdown as the serialization format, not necessarily as the editor's live document model.
+
+And that's where your website renderer becomes particularly useful. You could define something like:
+
+Markdown AST ⇄ Editor AST ⇄ Markdown
+
+with renderer nodes for paragraph, heading, strong, link, code, mermaid, youtube, callout, etc. The rich editor manipulates the AST without touching Markdown characters; serialization back to Markdown happens when saving.
+
+That eliminates the jumping-around problem almost entirely.
+
+So I'd spend maybe 30 minutes each with Typora and MarkText before writing code. Typora will tell you whether the UX already satisfies you; MarkText will tell you whether an existing open-source editor is a better starting point. If neither handles your custom renderer elegantly, I actually think the weekend project is justified—and the interesting feature isn't “another Markdown editor,” it's an extensible block editor whose native file format happens to be Markdown.
+
+I can also dig into the Typora/MarkText extension limitations and sketch the smallest viable architecture for building your version this weekend.
+
+So I've tried Typora, actually bought a license for it, but I can't use it to edit my website blogs because they're MDX. So that's where I'd want to at least be able to load custom markdown modules, almost like you have a sort of like React, like JSX registry or something like this. It's a little too nerdy and hackable, but it would solve my immediate needs as a dev on these sorts of projects.
+
+Yeah — MDX changes my answer quite a bit. You’re not really looking for a Markdown editor. You’re looking for a developer-oriented MDX editor with a pluggable component registry.
+
+And interestingly, there’s a library that gets very close to the thing you just described: MDXEditor.
+
+It’s a React/Lexical editor specifically for MDX. Its JSX plugin lets you register descriptors for your custom components and give each one its own React editor UI. It supports inline and block JSX, props, expression props, children, etc. 
+
+So imagine your blog contains:
+
+# Building the Intention Layer
+
+Here's the basic idea.
+
+<YouTube id="abc123" />
+
+<Callout type="warning">
+  Don't do this in production.
+</Callout>
+
+<Mermaid>
+graph TD
+  A --> B
+</Mermaid>
+Your desktop app loads something roughly conceptually equivalent to:
+
+const components = {
+  YouTube: YouTubeEditor,
+  Callout: CalloutEditor,
+  Mermaid: MermaidEditor,
+}
+Then instead of showing:
+
+<YouTube id="abc123" />
+the document surface shows an actual YouTube embed. Clicking it could give you a small inspector for the ID.
+
+<Callout> becomes your actual callout UI, with its children still editable as rich text.
+
+<Mermaid> becomes the diagram, and clicking it opens a popover/side inspector containing the Mermaid source.
+
+MDXEditor explicitly supports associating JSX components with custom editors, including nested Markdown content, so this isn't something we'd have to invent at the editor-engine level. 
+
+The especially interesting part for your use case
+I wouldn't make the component registry something compiled into the app.
+
+I'd make a little .mdxeditor config live in the website repo:
+
+my-website/
+├── .mdxeditor/
+│   ├── config.ts
+│   └── components/
+│       ├── YouTube.tsx
+│       ├── Mermaid.tsx
+│       └── Callout.tsx
+├── posts/
+│   ├── intention-layer.mdx
+│   └── nasa-computers.mdx
+└── package.json
+Then opening an MDX file discovers the nearest config.
+
+Conceptually:
+
+export default defineEditor({
+  components: {
+    YouTube: {
+      kind: "block",
+      editor: "./components/YouTube"
+    },
+
+    Mermaid: {
+      kind: "block",
+      editor: "./components/Mermaid"
+    },
+
+    Callout: {
+      kind: "block",
+      editor: "./components/Callout",
+      children: "markdown"
+    }
+  }
+})
+That's a much more interesting tool than a generic Markdown editor.
+
+Your personal site's repository effectively provides an editor plugin describing its MDX dialect. Another repo can provide a completely different one.
+
+And because MDXEditor accepts and emits Markdown/MDX as strings rather than treating HTML as an intermediate storage format, you're still editing the actual source artifact rather than creating some proprietary document model that happens to export Markdown. 
+
+It also already has plugin infrastructure around import/export and custom Lexical nodes, so if one of your site's extensions isn't JSX—some weird remark syntax, directive, custom fenced block, etc.—there's an extension point for that too. 
+ MDX itself is designed to be extended with remark/rehype plugins as well. 
+
+I think the weekend project gets smaller
+I wouldn't build an editor.
+
+I'd build a thin macOS desktop shell around MDXEditor—probably Tauri if you want it to feel like a little native utility rather than an Electron IDE.
+
+The app itself mostly becomes:
+
+Finder / file system → MDXEditor → project component registry → save
+
+with three presentation modes:
+
+Rich ← default, no Markdown syntax dancing around
+Hybrid ← rich prose + source editors for unknown/custom constructs
+Source ← CodeMirror/Monaco raw MDX
+
+MDXEditor already exposes a source/diff mode architecture, and there's even an extra source-preview plugin designed to let you bring your own source editor such as CodeMirror or Monaco. 
+
+And importantly, unknown JSX shouldn't fail. I'd render it as a pleasant generic card:
+
+<MyWeirdThing>
+Unregistered MDX component · Edit source
+
+Click → little source popover. Register it later if you care.
+
+That gives you exactly the hackability you're talking about without requiring every site's MDX dialect to be understood by the application.
+
+In fact, I think I'd make “open this repo's MDX and make it pleasant to edit” the entire product thesis. It's basically Typora for developers who actually use MDX.
+
+I can dig into MDXEditor's API and sketch the smallest Tauri + React architecture and component-registry format that would get this working over a weekend.
+
+Yeah, I really like MDX Editor as a starting point. So, maybe, like a fork of that with more features and the registry and stuff like this, and some sort of macOS interoperability layer like Tauri.
+
+Yeah. I think that's the right boundary, although I wouldn't fork MDXEditor immediately.
+
+MDXEditor already exposes quite a bit of its internals as plugins/reactive primitives, and its JSX support explicitly accepts JsxComponentDescriptor[] with custom editors. 
+ So I'd initially structure this as:
+
+┌──────────────────────── macOS app ────────────────────────┐
+│                         Tauri                             │
+│                                                          │
+│  File open/save     Finder integration     recent files  │
+│  project discovery  native menus           file watching │
+│                          │                               │
+│                          ▼                               │
+│  ┌──────────────── React application ─────────────────┐  │
+│  │                                                    │  │
+│  │             MDXEditor / Lexical                    │  │
+│  │                     │                              │  │
+│  │          ┌──────────┴──────────┐                   │  │
+│  │          │                     │                   │  │
+│  │     Standard MDX         Project Registry          │  │
+│  │                                │                   │  │
+│  │                  .mdxeditor/config.ts              │  │
+│  │                                │                   │  │
+│  │              ┌─────────────────┼──────────────┐     │  │
+│  │              ▼                 ▼              ▼     │  │
+│  │           YouTube           Mermaid        Custom   │  │
+│  │           editor            editor         JSX     │  │
+│  └────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────┘
+Tauri is actually a very reasonable shell for this. Tauri 2 has macOS filesystem support, native application bundling, and the ability to launch subprocesses when necessary. 
+
+The registry is the product, IMO.
+
+I'd want a repo to be able to contain something like:
+
+// .mdxeditor/config.ts
+
+export default defineConfig({
+  content: ["src/content/**/*.mdx"],
+
+  components: {
+    YouTube: {
+      module: "./editors/YouTube.tsx",
+      kind: "block",
+    },
+
+    Mermaid: {
+      module: "./editors/Mermaid.tsx",
+      kind: "block",
+    },
+
+    ImageGallery: {
+      module: "./editors/ImageGallery.tsx",
+      kind: "block",
+    },
+
+    Aside: {
+      module: "./editors/Aside.tsx",
+      kind: "container",
+      children: "markdown",
+    },
+  },
+});
+And importantly, I wouldn't require the editor component to be the same component the website uses.
+
+You could optionally say:
+
+YouTube: {
+  component: "../src/components/YouTube.tsx",
+  editor: "./editors/YouTube.tsx",
+}
+The website's component is optimized for presentation; the editor component is optimized for manipulating its props.
+
+So a YouTube node in Rich mode might render the thumbnail/player with a little selection affordance. Double-click it and you get:
+
+┌─ YouTube ──────────────────────────┐
+│ Video ID   [ dQw4w9WgXcQ        ] │
+│ Start      [ 0                   ] │
+│                                    │
+│       [ Edit MDX ]     [ Remove ] │
+└────────────────────────────────────┘
+No JSX ever has to appear in the document surface.
+
+And I think there's an important second layer
+The app should have a zero-configuration fallback.
+
+If it encounters:
+
+<SomeCrazyComponent foo="bar" count={42}>
+  **Hello**
+</SomeCrazyComponent>
+and there's no registry entry, it doesn't throw its hands up. MDXEditor already ships a generic JSX editor and supports textual/expression properties. 
+
+So you'd get a generic <SomeCrazyComponent> block with editable props and children.
+
+Then registering a component is purely progressive enhancement:
+
+unknown MDX → generic editor → registered editor → bespoke rich editor.
+
+That makes the application useful on essentially any MDX repository on day one.
+
+Source mode is nearly free, too
+Interestingly, MDXEditor now has an official-ish extras repository containing a source-preview plugin that can bring your own Monaco/CodeMirror editor and synchronize it with the rich editor. 
+
+So I'd make ⌘⇧M cycle:
+
+Rich → Split → Source
+
+rather than reinventing that machinery.
+
+The first weekend MVP therefore isn't enormous:
+
+Tauri + React shell.
+Open/save .md and .mdx.
+MDXEditor with all the standard plugins.
+Generic JSX editing.
+Rich/source toggle.
+Find nearest .mdxeditor configuration.
+Load component descriptors from it.
+Remember recent projects/files.
+Register .md/.mdx with macOS so Open With → app works.
+Only after hitting an MDXEditor limitation would I fork it. It's MIT licensed, so that's available if necessary, but maintaining a Lexical editor fork is exactly the kind of weekend project that quietly becomes a second job. 
+
+And there's a genuinely cool longer-term direction here: the .mdxeditor directory becomes an editor SDK. A site's repository can teach the desktop editor how its particular content language works. That's much more useful to me than “Typora, except it doesn't choke on JSX.”
+
+I can turn this into a concrete weekend build plan with the package structure, Tauri commands, registry API, and the first 5–6 implementation milestones.
+
+Well, another reason why I would want to fork it too is because I also want to do a chart editor. I didn't say that initially, but like I really wanna have a way to do Miro-like chart editing, flowchart editing. Mermaid is useful, but I've noticed that LLMs like to do these aux diagrams in the coding tools. So having a way to do that or, you know, draw little UI mockups and things like this in ASCII, really help these things.
+
+Oh, yes. That changes the scope enough that forking starts to make more sense. You're no longer just making an MDX desktop wrapper—you want the document editor itself to support richer spatial/structured authoring primitives.
+
+I'd think of it as having multiple editors for the same underlying node.
+
+For example, Mermaid source:
+
+User
+Web
+API
+DB
+Mermaid source codeflowchart LR
+  User --> Web
+  Web --> API
+  API --> DB
+could have three representations:
+
+Visual
+
+Miro-ish canvas: drag nodes, create edges, rename things, change shapes.
+
+Source
+
+Normal Mermaid text.
+
+Rendered
+
+The resulting static diagram.
+
+The really interesting requirement is that Mermaid remains the serialization format. You're not creating some proprietary .diagram blob inside the MDX. Dragging API to another location or adding Cache modifies the Mermaid AST and serializes it back into the fenced code block.
+
+That means an LLM coding agent can write:
+
+```mermaid
+flowchart LR
+  Browser --> API
+  API --> Redis
+  API --> Postgres
+
+and when you open the file, **it's suddenly an editable diagram**.
+
+That's pretty compelling.
+
+### I wouldn't stop at Mermaid
+
+I'd make the underlying abstraction something like a **Rich Code Block Editor**:
+
+```ts
+interface BlockEditor<T> {
+  language: string;
+
+  parse(source: string): T;
+  serialize(value: T): string;
+
+  render(value: T): ReactNode;
+  edit(value: T, onChange: (value: T) => void): ReactNode;
+}
+Then:
+
+mermaid     → visual graph editor
+ascii       → monospace drawing editor
+svg         → visual/vector editor
+json        → structured property editor
+vega-lite   → chart builder
+plantuml    → diagram editor
+And your MDX registry is actually the more general concept:
+
+defineEditor({
+  jsx: {
+    YouTube: YouTubeEditor,
+    Callout: CalloutEditor,
+  },
+
+  codeBlocks: {
+    mermaid: MermaidVisualEditor,
+    ascii: AsciiCanvasEditor,
+    "vega-lite": VegaLiteEditor,
+  }
+})
+Now you've got something substantially more interesting than an MDXEditor fork.
+
+The ASCII thing is particularly cool
+Because coding agents love text representations.
+
+You could have:
+
+┌─────────────────┐
+│ Search          │
+├─────────────────┤
+│                 │
+│ Result 1        │
+│ Result 2        │
+│ Result 3        │
+│                 │
+└─────────────────┘
+and have an editor that understands enough structure to let you select, move, resize, duplicate and label boxes while preserving plain text as the source of truth.
+
+It doesn't even have to understand everything initially. A fixed-width grid editor with selection rectangles, line/box drawing, text, arrows and Unicode box-drawing characters would already be enormously better than editing ASCII diagrams character-by-character.
+
+And there's a lovely LLM loop there:
+
+LLM writes ASCII → human visually manipulates it → saved as ASCII → LLM reads modifications.
+
+No screenshots. No Figma API. No proprietary format. Git diff works. Claude Code/Codex can read it. It works in terminals.
+
+That feels very aligned with what you're actually trying to accomplish.
+
+For Mermaid, I'd use a graph canvas rather than build one
+You could potentially put something like React Flow underneath the Mermaid editor:
+
+          MDX document
+               │
+        ```mermaid block
+               │
+               ▼
+         Mermaid parser
+               │
+               ▼
+       normalized graph AST
+          ╱           ╲
+         ▼             ▼
+    React Flow      Mermaid
+     editor         renderer
+         │
+         └─────┬───────┘
+               ▼
+        Mermaid serializer
+               │
+               ▼
+        ```mermaid block
+
+
+
+
+
+
+
+3
+The hard problem isn't really rendering or dragging nodes. It's round-trip fidelity.
+
+If I open Mermaid written by an agent, drag one node, and save, you don't want:
+
+- graph TD
+-   A[Frontend] --> B{API}
++ flowchart TD;
++ A["Frontend"] --> B{"API"};
+plus 35 unrelated formatting changes.
+
+So I'd make preservation of source structure a first-class architectural requirement: parse into an AST that retains source locations/trivia, modify only affected constructs, and patch the original text where possible rather than blindly reserializing the entire graph.
+
+At that point, yes: fork
+Because I think your desired abstraction starts to go beneath MDXEditor's public plugin layer.
+
+The fork could still stay relatively close upstream. You're essentially saying:
+
+Lexical is my document-editing engine, MDX is my durable serialization format, and individual syntactic constructs can supply alternate interactive editors.
+
+Then the architecture becomes:
+
+                         Desktop App
+                            Tauri
+                              │
+                              ▼
+                    ┌───────────────────┐
+                    │ Document Editor   │
+                    │ Lexical/MDXEditor │
+                    └─────────┬─────────┘
+                              │
+              ┌───────────────┼────────────────┐
+              │               │                │
+           Markdown           JSX          Code Blocks
+              │               │                │
+          Rich Text       Registry          Registry
+                              │                │
+                       ┌──────┴──────┐    ┌────┴──────────┐
+                       │             │    │               │
+                    YouTube       Custom Mermaid        ASCII
+                                           │             │
+                                       Graph Canvas   Grid Canvas
+                                           │             │
+                                           └──────┬──────┘
+                                                  │
+                                            Plain Text
+And that last property is what makes me like the idea: everything degrades to text.
+
+A person without your editor sees valid MDX/Markdown. GitHub can display much of it. A coding agent understands it. VS Code can edit it. Your website can compile it. Your application just provides a dramatically richer manipulation layer on top.
+
+That gives the project a much stronger thesis than "MDXEditor for macOS": a visual editor for text-native documents designed to remain friendly to Git and coding agents. Given the kinds of agent-assisted development you're describing, I think that's the interesting part.
+
+I can map out the fork architecture next—including where I'd modify MDXEditor/Lexical versus keep things as external plugins, and how I'd design the Mermaid + ASCII editor contracts first.
+
+Yeah. I think the other thing that's kind of handy with this too is that it could even ship a version that is a VS code plugin if the editor renderer engine is kind of set up as its own library in Amarantha. It'd be interesting. Because I don't like the default markdown viewer for the same reason where it shifts the document around and things like this, and you do a side split kind of thing, and it's too narrow when you're working on like an actual, like an actual document. Like if you're authoring a skill by hand and you really get in there and be specific, it just kind of gets in the way of that when you really need a lock-in, really polished behavior and really get a thought out specifically.
+
+Yeah — and I think that actually clarifies what Amarantha should be architecturally. The macOS app shouldn't own the editor. It should be one host for an editor engine that can also live inside VS Code or potentially the browser.
+
+The problem you're describing isn't really "Markdown preview." It's focused authoring of text-native documents without exposing the serialization syntax all the time.
+
+VS Code's normal choices are basically:
+
+source.md | preview
+
+which burns half your horizontal space, or source-only editing, where the document's implementation details are constantly competing with the actual prose. That's particularly annoying for something like a long SKILL.md, where you're essentially writing a small technical specification and care about headings, hierarchy, code, tables, diagrams, and exact language.
+
+I'd structure Amarantha roughly like this:
+
+@amarantha/core
+  Markdown / MDX AST
+  parsing + serialization
+  document model
+  registry contracts
+  source-preserving transforms
+
+@amarantha/editor
+  React + Lexical
+  rich-text editing
+  selections
+  block UI
+  popovers / inspectors
+  keyboard behavior
+
+@amarantha/blocks
+  standard Markdown
+  code
+  Mermaid
+  ASCII canvas
+  tables
+  etc.
+
+@amarantha/mdx
+  JSX registry
+  custom components
+  project configuration
+
+@amarantha/desktop
+  Tauri
+  filesystem
+  Finder/Open With
+  tabs/windows
+  native menus
+
+@amarantha/vscode
+  VS Code custom editor
+  webview host
+  workspace integration
+The VS Code custom editor API is almost tailor-made for this. A VS Code extension can register a custom editor for a resource and host the actual UI in a webview. VS Code Custom Editor API
+
+So you could right-click:
+
+SKILL.md
+and choose something like:
+
+Open With → Amarantha
+
+and instead of getting another narrow Markdown preview, the entire editor tab becomes the rich document.
+
+That's a huge difference.
+
+And source mode becomes an escape hatch, not the editor
+I think that's one of the principles I'd explicitly write down for this project:
+
+Source is the storage format, not necessarily the authoring interface.
+
+You'd normally see:
+
+Writing effective tool instructions
+The tool should only be invoked when all three conditions are satisfied.
+
+Important
+Avoid invoking the tool speculatively.
+
+function shouldInvoke(...) {
+  // ...
+}
+And everything stays put while you're typing.
+
+Click all three conditions, type something, bold/unbold it — nothing jumps because ** isn't suddenly entering the layout.
+
+Click the code block and you get an actual CodeMirror editor inside that block.
+
+Click Mermaid and you get the graph canvas.
+
+Click ASCII and you get your little spatial editor.
+
+Click an MDX component and you get its registered editor.
+
+And then maybe ⌘⇧M means Edit Source, either for the selected block or the whole document.
+
+That feels substantially different from Typora's "hide Markdown until you're editing this particular piece" model. You don't necessarily reveal Markdown at all. You're manipulating the parsed representation.
+
+VS Code might actually be the killer distribution mechanism
+The Tauri app is what you personally want to use for writing. It's clean, fast, Finder-native, and doesn't surround your prose with Git graphs, terminals, Copilot controls, explorers, minimaps, etc.
+
+But the VS Code extension turns it from "Frank's weird MDX editor" into something other developers could stumble into and immediately understand:
+
+Oh. This gives me a proper document editor inside my codebase.
+
+And it would still participate in the development workflow.
+
+You could have a tiny toolbar:
+
+Rich · Source · Diff
+
+with VS Code still handling Git, file watching, external modifications, source control, workspace trust, etc.
+
+If Claude Code edits SKILL.md underneath you, Amarantha receives the filesystem/document update and reconciles it into the rich editor. If you visually modify a Mermaid graph, VS Code immediately sees the resulting Markdown change in Git.
+
+That's a pretty beautiful loop:
+
+                Git repository
+                     │
+          ┌──────────┴──────────┐
+          │                     │
+       Humans                  Agents
+          │                     │
+          ▼                     ▼
+     Amarantha             plain text
+          │                     │
+          │      Markdown/MDX   │
+          └──────────┬──────────┘
+                     │
+                     ▼
+                 git diff
+Neither side requires a proprietary interchange format.
+
+And this also suggests that MDXEditor should eventually become an implementation dependency rather than Amarantha's identity. Forking it is fine, but I'd be careful about naming your public APIs around MDXEditor/Lexical concepts.
+
+@amarantha/core shouldn't know what Lexical is.
+
+A block is more like:
+
+interface AmaranthaBlock<T> {
+  match(node: DocumentNode): boolean;
+
+  parse(node: DocumentNode): T;
+
+  serialize(
+    value: T,
+    original: DocumentNode
+  ): DocumentPatch;
+
+  editor: BlockEditor<T>;
+}
+Then Mermaid, ASCII, JSX, whatever all implement that contract.
+
+Today @amarantha/editor happens to use your MDXEditor/Lexical fork. If two years from now Lexical becomes painful, you haven't made your document format, plugin SDK, desktop app and VS Code extension synonymous with Lexical.
+
+And I particularly like the SKILL.md example because it gives you a much tighter initial product target than "support all Markdown."
+
+Amarantha v0: Make writing long, technical Markdown documents inside a repository feel as polished as writing in a dedicated document editor—without making the document any less useful to Git, editors, or agents.
+
+Then MDX components, Mermaid visual editing, ASCII wireframes, etc. become increasingly powerful demonstrations of that same principle rather than disconnected features.
+
+I can turn this into an Amarantha v0 architecture/RFC, including the package boundaries, document/block API, VS Code custom-editor integration, and what we'd fork versus wrap from MDXEditor.
+
+What’s the story behind the name Amarantha?
+
+Amarantha is an old feminine name derived from Greek ἀμάραντος (amárantos), meaning “unfading,” “undying,” or “that which does not wither.” It’s the same root behind amaranth, the flower/grain.
+
+
+
+
+
+
+
+2
+The symbolism comes from the amaranth flower’s reputation for retaining its color after being dried. Because of that, Greek and later Western literary traditions associated the amaranth with immortality, permanence, and enduring beauty. The name Amarantha is essentially a poetic feminine form: “the unfading one.”
+
+It shows up especially in early-modern English literature. Poets used Amarantha as one of those pastoral/classical feminine names—alongside things like Cynthia, Celia, or Lucasta. Richard Lovelace, for example, wrote the 17th-century poem “To Amarantha, That She Would Dishevel Her Hair.”
+
+And accidentally or otherwise, it’s a remarkably appropriate name for the thing we were just describing.
+
+The whole architectural thesis is that the durable artifact is plain text:
+
+Amarantha UI → Markdown/MDX → Git → another editor → an LLM → back to Amarantha
+
+The visual editing environment can change, components can change, VS Code can disappear, the macOS app can be replaced—but the underlying document doesn't wither with the tool that created it.
+
+So you get a pretty good little naming story:
+
+Amarantha — an unfading editor for durable documents.
+
+It also sounds like an application rather than a developer library, which helps if you eventually have Amarantha for Mac, Amarantha for VS Code, and an Amarantha SDK underneath them.
+
+I can also dig into whether “Amarantha” is already crowded as a software/product name and check domains, GitHub, trademarks, and App Store collisions.
+
+
+
+
+Sources
+
+Typora — simple yet powerful Markdown reader.
+
+Quick Start - Typora Support
+
+Typora on macOS - Typora Support
+
+View all
