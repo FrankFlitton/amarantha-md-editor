@@ -1,13 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { AmaranthaEditor, type EditorMode } from "@amarantha/editor";
-import type { ComponentRegistry, FontPreference, ProseSize, ThemeFamily, ThemeModePreference } from "@amarantha/core";
+import type { ComponentRegistry, FontPreference, FontSlot, ProseSize, ThemeFamily, ThemeModePreference } from "@amarantha/core";
 import { DEFAULT_FONT_PREFERENCE } from "@amarantha/core";
-import { PROSE_SIZES, THEME_FAMILIES, themeId } from "@amarantha/theme";
+import { themeId } from "@amarantha/theme";
 import { desktopHost, pickMarkdownFileToOpen, pickMarkdownFileToSaveAs } from "./lib/desktopHost";
 import { createImageHandlers } from "./lib/imageHost";
 import { resolveFontFamily } from "./lib/fontHost";
 import { usePersistentState, useSystemPrefersDark } from "./lib/preferences";
-import { FontPicker } from "./FontPicker";
+import { installNativeMenu, type NativeMenuActions, type NativeMenuHandle, type NativeMenuState } from "./lib/nativeMenu";
+import { FontPromptModal, type FontPromptRequest } from "./FontPromptModal";
 import "./App.css";
 
 function filenameFromUri(uri: string | null): string {
@@ -34,6 +36,7 @@ function App() {
   const [monoFont, setMonoFont] = usePersistentState<FontPreference>("amarantha:font-mono", DEFAULT_FONT_PREFERENCE);
   const [sansFontError, setSansFontError] = useState<string | undefined>(undefined);
   const [monoFontError, setMonoFontError] = useState<string | undefined>(undefined);
+  const [fontPromptRequest, setFontPromptRequest] = useState<FontPromptRequest | null>(null);
 
   const systemPrefersDark = useSystemPrefersDark();
 
@@ -44,15 +47,54 @@ function App() {
   const effectiveMode = modePreference === "system" ? (systemPrefersDark ? "dark" : "light") : modePreference;
   const effectiveThemeId = themeId(effectiveFamily, effectiveMode);
 
+  const handleOpen = useCallback(async () => {
+    const selected = await pickMarkdownFileToOpen();
+    if (!selected) return;
+    const doc = await desktopHost.readDocument(selected);
+    setUri(doc.uri);
+    setText(doc.text);
+    setSavedText(doc.text);
+    const { theme, componentRegistry } = await desktopHost.resolveWorkspaceConfig(doc.uri);
+    setRepoThemeFamily(theme);
+    setComponentRegistry(componentRegistry);
+  }, []);
+
+  const handleSave = useCallback(async () => {
+    let targetUri = uri;
+    if (!targetUri) {
+      targetUri = (await pickMarkdownFileToSaveAs()) ?? null;
+      if (!targetUri) return;
+      setUri(targetUri);
+    }
+    const result = await desktopHost.writeDocument({
+      uri: targetUri,
+      baseRevision: "",
+      text,
+      reason: "save",
+    });
+    if (result.ok) {
+      setSavedText(text);
+    }
+  }, [uri, text]);
+
+  const setFont = useCallback(
+    (slot: FontSlot, pref: FontPreference) => {
+      if (slot === "sans") setSansFont(pref);
+      else setMonoFont(pref);
+    },
+    [setSansFont, setMonoFont]
+  );
+
   useEffect(() => {
-    // Resolved once up front so a fresh, unsaved buffer still gets rich
-    // component editing and a theme; re-resolved per file below once the
-    // file actually has a resolvable amarantha.config.json ancestry.
     void desktopHost.resolveWorkspaceConfig("").then(({ theme, componentRegistry }) => {
       setRepoThemeFamily(theme);
       setComponentRegistry(componentRegistry);
     });
   }, []);
+
+  useEffect(() => {
+    void getCurrentWindow().setTitle(dirty ? `• ${filenameFromUri(uri)}` : filenameFromUri(uri));
+  }, [uri, dirty]);
 
   useEffect(() => {
     let cancelled = false;
@@ -86,114 +128,67 @@ function App() {
     };
   }, [monoFont]);
 
-  const handleOpen = useCallback(async () => {
-    const selected = await pickMarkdownFileToOpen();
-    if (!selected) return;
-    const doc = await desktopHost.readDocument(selected);
-    setUri(doc.uri);
-    setText(doc.text);
-    setSavedText(doc.text);
-    const { theme, componentRegistry } = await desktopHost.resolveWorkspaceConfig(doc.uri);
-    setRepoThemeFamily(theme);
-    setComponentRegistry(componentRegistry);
-  }, []);
+  // The native menu (installed once) and its action callbacks must never see
+  // stale state: actionsRef/stateRef are refreshed every render and the menu
+  // only ever calls through them, rather than closing over this render's values.
+  const actionsRef = useRef<NativeMenuActions>(null as unknown as NativeMenuActions);
+  const stateRef = useRef<NativeMenuState>(null as unknown as NativeMenuState);
+  const menuHandleRef = useRef<NativeMenuHandle | undefined>(undefined);
 
-  const handleSave = useCallback(async () => {
-    let targetUri = uri;
-    if (!targetUri) {
-      targetUri = (await pickMarkdownFileToSaveAs()) ?? null;
-      if (!targetUri) return;
-      setUri(targetUri);
-    }
-    const result = await desktopHost.writeDocument({
-      uri: targetUri,
-      baseRevision: "",
-      text,
-      reason: "save",
-    });
-    if (result.ok) {
-      setSavedText(text);
-    }
-  }, [uri, text]);
+  actionsRef.current = {
+    onOpen: () => void handleOpen(),
+    onSave: () => void handleSave(),
+    onSetEditorMode: setMode,
+    onSetFamily: setFamilyPreference,
+    onSetModePreference: setModePreference,
+    onSetSize: setSizePreference,
+    onSetFont: setFont,
+    onPromptCustomFont: (slot) => {
+      const current = slot === "sans" ? sansFont : monoFont;
+      setFontPromptRequest({
+        slot,
+        kind: "fontsource",
+        initialValue: current.kind === "fontsource" ? (current.fontsourceId ?? "") : "",
+      });
+    },
+    onPromptSystemFont: (slot) => {
+      const current = slot === "sans" ? sansFont : monoFont;
+      setFontPromptRequest({
+        slot,
+        kind: "system",
+        initialValue: current.kind === "system" ? (current.systemFamily ?? "") : "",
+      });
+    },
+  };
+  stateRef.current = { editorMode: mode, familyPreference, modePreference, sizePreference, sansFont, monoFont };
 
   useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      const meta = event.metaKey || event.ctrlKey;
-      if (!meta) return;
-      if (event.key.toLowerCase() === "s" && !event.shiftKey) {
-        event.preventDefault();
-        void handleSave();
-      } else if (event.key.toLowerCase() === "m" && event.shiftKey) {
-        event.preventDefault();
-        setMode((current) => (current === "rich" ? "source" : "rich"));
-      }
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [handleSave]);
+    const stableActions: NativeMenuActions = {
+      onOpen: () => actionsRef.current.onOpen(),
+      onSave: () => actionsRef.current.onSave(),
+      onSetEditorMode: (m) => actionsRef.current.onSetEditorMode(m),
+      onSetFamily: (f) => actionsRef.current.onSetFamily(f),
+      onSetModePreference: (m) => actionsRef.current.onSetModePreference(m),
+      onSetSize: (s) => actionsRef.current.onSetSize(s),
+      onSetFont: (slot, pref) => actionsRef.current.onSetFont(slot, pref),
+      onPromptCustomFont: (slot) => actionsRef.current.onPromptCustomFont(slot),
+      onPromptSystemFont: (slot) => actionsRef.current.onPromptSystemFont(slot),
+    };
+    void installNativeMenu(stableActions).then((handle) => {
+      menuHandleRef.current = handle;
+      void handle.sync(stateRef.current);
+    });
+  }, []);
+
+  useEffect(() => {
+    void menuHandleRef.current?.sync(stateRef.current);
+  }, [mode, familyPreference, modePreference, sizePreference, sansFont, monoFont]);
 
   return (
     <div
       className={`app-shell amarantha-app ${effectiveMode === "dark" ? "dark" : "light-theme"}`}
       data-theme={effectiveThemeId}
     >
-      <header className="titlebar" data-testid="titlebar">
-        <span className="filename" data-testid="filename">
-          {filenameFromUri(uri)}
-        </span>
-        {dirty && <span className="dirty-dot" data-testid="dirty-dot" aria-label="unsaved changes" />}
-        <div className="spacer" />
-        <select
-          data-testid="theme-family-select"
-          value={familyPreference ?? ""}
-          onChange={(event) => setFamilyPreference(event.target.value ? (event.target.value as ThemeFamily) : undefined)}
-          title="Theme"
-        >
-          <option value="">Theme: repo default</option>
-          {THEME_FAMILIES.map(({ family, label }) => (
-            <option key={family} value={family}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <select
-          data-testid="theme-mode-select"
-          value={modePreference}
-          onChange={(event) => setModePreference(event.target.value as ThemeModePreference)}
-          title="Light / Dark"
-        >
-          <option value="system">System</option>
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-        </select>
-        <select
-          data-testid="prose-size-select"
-          value={sizePreference}
-          onChange={(event) => setSizePreference(event.target.value as ProseSize)}
-          title="Text size"
-        >
-          {PROSE_SIZES.map(({ size, label }) => (
-            <option key={size} value={size}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <FontPicker slot="sans" value={sansFont} onChange={setSansFont} error={sansFontError} />
-        <FontPicker slot="mono" value={monoFont} onChange={setMonoFont} error={monoFontError} />
-        <button type="button" data-testid="open-button" onClick={() => void handleOpen()}>
-          Open
-        </button>
-        <button type="button" data-testid="save-button" onClick={() => void handleSave()}>
-          Save
-        </button>
-        <button
-          type="button"
-          data-testid="mode-toggle-button"
-          onClick={() => setMode((current) => (current === "rich" ? "source" : "rich"))}
-        >
-          {mode === "rich" ? "Source" : "Rich"}
-        </button>
-      </header>
       <main className="editor-surface">
         {/* MDXEditor's `markdown` prop (and its plugin list, including jsxPlugin's
             componentRegistry-derived descriptors) only seed initial state and
@@ -210,6 +205,25 @@ function App() {
           proseSize={sizePreference}
         />
       </main>
+      {(sansFontError || monoFontError) && (
+        <div className="font-error-banner" data-testid="font-error-banner">
+          {sansFontError && <span>Body font: {sansFontError}</span>}
+          {monoFontError && <span>Code font: {monoFontError}</span>}
+        </div>
+      )}
+      <FontPromptModal
+        request={fontPromptRequest}
+        onCancel={() => setFontPromptRequest(null)}
+        onSubmit={(value) => {
+          if (!fontPromptRequest) return;
+          const pref: FontPreference =
+            fontPromptRequest.kind === "fontsource"
+              ? { kind: "fontsource", fontsourceId: value }
+              : { kind: "system", systemFamily: value };
+          setFont(fontPromptRequest.slot, pref);
+          setFontPromptRequest(null);
+        }}
+      />
     </div>
   );
 }

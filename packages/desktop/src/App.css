@@ -29,77 +29,6 @@ body,
   height: 100vh;
 }
 
-.titlebar {
-  height: 36px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 12px;
-  font-size: 13px;
-  border-bottom: 1px solid var(--am-border);
-  -webkit-app-region: drag;
-}
-
-.titlebar .filename {
-  font-weight: 500;
-  color: var(--am-text);
-}
-
-.titlebar .dirty-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--am-accent);
-  display: inline-block;
-}
-
-.titlebar .spacer {
-  flex: 1;
-}
-
-.titlebar select,
-.titlebar input[type="text"] {
-  -webkit-app-region: no-drag;
-  border: 1px solid var(--am-border);
-  background: var(--am-surface);
-  color: var(--am-text);
-  font-size: 12px;
-  padding: 3px 6px;
-  border-radius: 6px;
-}
-
-.titlebar input[type="text"] {
-  width: 140px;
-}
-
-.font-picker {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  -webkit-app-region: no-drag;
-}
-
-.font-picker-error {
-  color: var(--am-accent);
-  font-size: 11px;
-}
-
-.titlebar button {
-  -webkit-app-region: no-drag;
-  border: none;
-  background: transparent;
-  font-size: 13px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  color: var(--am-text);
-}
-
-.titlebar button:hover {
-  background: var(--am-border);
-}
-
 .editor-surface {
   flex: 1;
   overflow: auto;
@@ -122,4 +51,75 @@ body,
   outline: none;
   background: transparent;
   color: inherit;
+}
+
+.font-error-banner {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--am-surface);
+  border: 1px solid var(--am-accent);
+  color: var(--am-accent);
+  font-size: 12px;
+}
+
+.font-prompt-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 35%);
+}
+
+.font-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  min-width: 320px;
+  border-radius: 10px;
+  background: var(--am-surface);
+  border: 1px solid var(--am-border);
+  color: var(--am-text);
+}
+
+.font-prompt label {
+  font-size: 13px;
+  color: var(--am-text-muted);
+}
+
+.font-prompt input[type="text"] {
+  padding: 6px 8px;
+  border: 1px solid var(--am-border);
+  border-radius: 6px;
+  background: var(--am-bg);
+  color: var(--am-text);
+  font-size: 14px;
+}
+
+.font-prompt-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.font-prompt-actions button {
+  border: none;
+  background: var(--am-border);
+  color: var(--am-text);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.font-prompt-actions button[type="submit"] {
+  background: var(--am-accent);
+  color: var(--am-accent-text);
 }
