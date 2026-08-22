@@ -12,20 +12,20 @@ Decisions already made with the user: JSON-only config for v0 (no `.ts` executio
 
 ## 1. Theme catalog (10 themes, 5 families)
 
-New tokens (7 per theme): `--am-bg`, `--am-surface`, `--am-border`, `--am-text`, `--am-text-muted`, `--am-accent`, `--am-accent-text`. Starting values below — tune visually during implementation, not final:
+New tokens (8 per theme): `--am-bg`, `--am-surface`, `--am-border`, `--am-text`, `--am-text-muted`, `--am-accent`, `--am-accent-text`, `--am-selection`. Starting values below — tune visually during implementation, not final. `--am-selection` is applied globally via `::selection { background: var(--am-selection); }` and is a translucent tint of each theme's accent (8-digit hex alpha) rather than an opaque color, so the existing text color still shows through selected text:
 
-| Theme | bg | surface | border | text | text-muted | accent | accent-text |
-|---|---|---|---|---|---|---|---|
-| `ember-light` (current identity) | `#fbfbfa` | `#f3f2ef` | `#e5e5e3` | `#0f0f0f` | `#6b6b68` | `#d97757` | `#fbfbfa` |
-| `ember-dark` (current identity) | `#1e1e1c` | `#232321` | `#3a3a37` | `#f0f0f0` | `#a3a39e` | `#d97757` | `#1e1e1c` |
-| `minimal-light` | `#ffffff` | `#f7f7f7` | `#e3e3e3` | `#171717` | `#767676` | `#3f3f46` | `#ffffff` |
-| `minimal-dark` | `#121212` | `#1a1a1a` | `#2e2e2e` | `#e8e8e8` | `#9a9a9a` | `#a1a1aa` | `#121212` |
-| `solarized-light` | `#fdf6e3` | `#eee8d5` | `#93a1a1` | `#657b83` | `#93a1a1` | `#268bd2` | `#fdf6e3` |
-| `solarized-dark` | `#002b36` | `#073642` | `#586e75` | `#839496` | `#586e75` | `#268bd2` | `#002b36` |
-| `matrix-light` | `#f2f7f0` | `#e6efe2` | `#b8d2b6` | `#163318` | `#4a6b4a` | `#0a7a2f` | `#f2f7f0` |
-| `matrix-dark` | `#050705` | `#0b120b` | `#1e2e1e` | `#c9f2cf` | `#7fae82` | `#00ff41` | `#050705` |
-| `cream-light` | `#faf3e7` | `#f2e8d8` | `#e0d0b0` | `#3a2e1f` | `#8a7860` | `#a67c3d` | `#faf3e7` |
-| `cream-dark` | `#2b2116` | `#3a2e1f` | `#5a4a34` | `#f0e3c8` | `#b8a582` | `#d9a441` | `#2b2116` |
+| Theme | bg | surface | border | text | text-muted | accent | accent-text | selection |
+|---|---|---|---|---|---|---|---|---|
+| `ember-light` (current identity) | `#fbfbfa` | `#f3f2ef` | `#e5e5e3` | `#0f0f0f` | `#6b6b68` | `#d97757` | `#fbfbfa` | `#d977573d` |
+| `ember-dark` (current identity) | `#1e1e1c` | `#232321` | `#3a3a37` | `#f0f0f0` | `#a3a39e` | `#d97757` | `#1e1e1c` | `#d977574d` |
+| `minimal-light` | `#ffffff` | `#f7f7f7` | `#e3e3e3` | `#171717` | `#767676` | `#3f3f46` | `#ffffff` | `#3f3f463d` |
+| `minimal-dark` | `#121212` | `#1a1a1a` | `#2e2e2e` | `#e8e8e8` | `#9a9a9a` | `#a1a1aa` | `#121212` | `#a1a1aa4d` |
+| `solarized-light` | `#fdf6e3` | `#eee8d5` | `#93a1a1` | `#657b83` | `#93a1a1` | `#268bd2` | `#fdf6e3` | `#268bd23d` |
+| `solarized-dark` | `#002b36` | `#073642` | `#586e75` | `#839496` | `#586e75` | `#268bd2` | `#002b36` | `#268bd24d` |
+| `matrix-light` | `#f2f7f0` | `#e6efe2` | `#b8d2b6` | `#0e7a24` | `#3f7a4f` | `#0a7a2f` | `#f2f7f0` | `#0a7a2f3d` |
+| `matrix-dark` | `#050705` | `#0b120b` | `#1e2e1e` | `#33ff66` | `#5fcf82` | `#00ff41` | `#050705` | `#00ff4133` |
+| `cream-light` | `#faf3e7` | `#f2e8d8` | `#e0d0b0` | `#3a2e1f` | `#8a7860` | `#a67c3d` | `#faf3e7` | `#a67c3d3d` |
+| `cream-dark` | `#2b2116` | `#3a2e1f` | `#5a4a34` | `#f0e3c8` | `#b8a582` | `#d9a441` | `#2b2116` | `#d9a4414d` |
 
 Solarized uses the canonical Solarized hex values + blue accent. Ember reuses today's exact hex values (no visual regression for existing users). Matrix/cream light variants invert the family's dark identity rather than reusing a generic light palette, so each family still reads as itself in both modes.
 

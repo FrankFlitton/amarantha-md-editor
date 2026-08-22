@@ -1,8 +1,8 @@
 /*
  * Amarantha theme tokens. Each theme is `[data-theme="<id>"]` on the app
- * root and defines the same 7-variable set: --am-bg/surface/border/text/
- * text-muted/accent/accent-text. See docs/theming-and-config-plan.md §1 for
- * the full table these values come from.
+ * root and defines the same 8-variable set: --am-bg/surface/border/text/
+ * text-muted/accent/accent-text/selection. See docs/theming-and-config-plan.md
+ * §1 for the full table these values come from.
  */
 
 :root:not([data-theme]) {
@@ -13,6 +13,7 @@
   --am-text-muted: #6b6b68;
   --am-accent: #d97757;
   --am-accent-text: #fbfbfa;
+  --am-selection: #d977573d;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -24,6 +25,7 @@
     --am-text-muted: #a3a39e;
     --am-accent: #d97757;
     --am-accent-text: #1e1e1c;
+    --am-selection: #d977574d;
   }
 }
 
@@ -35,6 +37,7 @@
   --am-text-muted: #6b6b68;
   --am-accent: #d97757;
   --am-accent-text: #fbfbfa;
+  --am-selection: #d977573d;
 }
 
 [data-theme="ember-dark"] {
@@ -45,6 +48,7 @@
   --am-text-muted: #a3a39e;
   --am-accent: #d97757;
   --am-accent-text: #1e1e1c;
+  --am-selection: #d977574d;
 }
 
 [data-theme="minimal-light"] {
@@ -55,6 +59,7 @@
   --am-text-muted: #767676;
   --am-accent: #3f3f46;
   --am-accent-text: #ffffff;
+  --am-selection: #3f3f463d;
 }
 
 [data-theme="minimal-dark"] {
@@ -65,6 +70,7 @@
   --am-text-muted: #9a9a9a;
   --am-accent: #a1a1aa;
   --am-accent-text: #121212;
+  --am-selection: #a1a1aa4d;
 }
 
 [data-theme="solarized-light"] {
@@ -75,6 +81,7 @@
   --am-text-muted: #93a1a1;
   --am-accent: #268bd2;
   --am-accent-text: #fdf6e3;
+  --am-selection: #268bd23d;
 }
 
 [data-theme="solarized-dark"] {
@@ -85,26 +92,29 @@
   --am-text-muted: #586e75;
   --am-accent: #268bd2;
   --am-accent-text: #002b36;
+  --am-selection: #268bd24d;
 }
 
 [data-theme="matrix-light"] {
   --am-bg: #f2f7f0;
   --am-surface: #e6efe2;
   --am-border: #b8d2b6;
-  --am-text: #163318;
-  --am-text-muted: #4a6b4a;
+  --am-text: #0e7a24;
+  --am-text-muted: #3f7a4f;
   --am-accent: #0a7a2f;
   --am-accent-text: #f2f7f0;
+  --am-selection: #0a7a2f3d;
 }
 
 [data-theme="matrix-dark"] {
   --am-bg: #050705;
   --am-surface: #0b120b;
   --am-border: #1e2e1e;
-  --am-text: #c9f2cf;
-  --am-text-muted: #7fae82;
+  --am-text: #33ff66;
+  --am-text-muted: #5fcf82;
   --am-accent: #00ff41;
   --am-accent-text: #050705;
+  --am-selection: #00ff4133;
 }
 
 [data-theme="cream-light"] {
@@ -115,6 +125,7 @@
   --am-text-muted: #8a7860;
   --am-accent: #a67c3d;
   --am-accent-text: #faf3e7;
+  --am-selection: #a67c3d3d;
 }
 
 [data-theme="cream-dark"] {
@@ -125,4 +136,10 @@
   --am-text-muted: #b8a582;
   --am-accent: #d9a441;
   --am-accent-text: #2b2116;
+  --am-selection: #d9a4414d;
+}
+
+:root:not([data-theme]) ::selection,
+[data-theme] ::selection {
+  background: var(--am-selection);
 }
