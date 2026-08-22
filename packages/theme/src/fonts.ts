@@ -18,6 +18,8 @@ export const CURATED_FONTS: CuratedFont[] = [
   { id: "ibm-plex-sans", label: "IBM Plex Sans", slot: "sans" },
   { id: "space-grotesk", label: "Space Grotesk", slot: "sans" },
   { id: "work-sans", label: "Work Sans", slot: "sans" },
+  { id: "libre-baskerville", label: "Libre Baskerville", slot: "heading" },
+  { id: "playfair-display", label: "Playfair Display", slot: "heading" },
   { id: "jetbrains-mono", label: "JetBrains Mono", slot: "mono" },
   { id: "ibm-plex-mono", label: "IBM Plex Mono", slot: "mono" },
   { id: "space-mono", label: "Space Mono", slot: "mono" },

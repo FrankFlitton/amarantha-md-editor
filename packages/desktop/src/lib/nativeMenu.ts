@@ -10,6 +10,7 @@ export interface NativeMenuState {
   modePreference: ThemeModePreference;
   sizePreference: ProseSize;
   sansFont: FontPreference;
+  headingFont: FontPreference;
   monoFont: FontPreference;
 }
 
@@ -155,8 +156,12 @@ export async function installNativeMenu(actions: NativeMenuActions): Promise<Nat
   const sizeSubmenu = await Submenu.new({ text: "Text Size", items: [...sizeItems.values()] });
 
   const sansFont = await buildFontSubmenu("sans", "Body", actions);
+  const headingFont = await buildFontSubmenu("heading", "Heading", actions);
   const monoFont = await buildFontSubmenu("mono", "Code", actions);
-  const fontSubmenu = await Submenu.new({ text: "Font", items: [sansFont.submenu, monoFont.submenu] });
+  const fontSubmenu = await Submenu.new({
+    text: "Font",
+    items: [sansFont.submenu, headingFont.submenu, monoFont.submenu],
+  });
 
   const viewSubmenu = await Submenu.new({
     text: "View",
@@ -223,6 +228,7 @@ export async function installNativeMenu(actions: NativeMenuActions): Promise<Nat
         ...[...modeItems].map(([value, item]) => item.setChecked(state.modePreference === value)),
         ...[...sizeItems].map(([size, item]) => item.setChecked(state.sizePreference === size)),
         syncFontChecks(sansFont.items, state.sansFont),
+        syncFontChecks(headingFont.items, state.headingFont),
         syncFontChecks(monoFont.items, state.monoFont),
       ]);
     },

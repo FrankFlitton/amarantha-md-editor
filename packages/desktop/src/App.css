@@ -29,6 +29,81 @@ body,
   height: 100vh;
 }
 
+.doc-header {
+  position: relative;
+  flex-shrink: 0;
+  height: 38px;
+  /* This row is the window's only title-bar content on macOS now
+     (titleBarStyle: Overlay + hiddenTitle: true — content flows up under
+     the floating native traffic lights, whose native title text is
+     suppressed — see tauri.conf.json). Real native title text is always
+     centered on the window regardless of the traffic lights, so the name
+     below is centered the same way (absolutely, not flex-centered within
+     the padded remainder) rather than clearing the lights with padding. */
+  -webkit-app-region: drag;
+}
+
+.doc-header-name,
+.doc-header-input {
+  -webkit-app-region: no-drag;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: min(60%, 480px);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--am-text);
+  text-align: center;
+}
+
+.doc-header-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: text;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.doc-header-name:hover {
+  background: var(--am-surface);
+}
+
+.doc-header-input {
+  border: none;
+  border-bottom: 1px solid var(--am-accent);
+  background: transparent;
+  padding: 2px 4px;
+  outline: none;
+  width: 240px;
+}
+
+.doc-header-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--am-accent);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.doc-header-error {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--am-accent);
+  white-space: nowrap;
+}
+
 .editor-surface {
   flex: 1;
   overflow: auto;

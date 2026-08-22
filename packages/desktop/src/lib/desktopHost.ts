@@ -1,4 +1,5 @@
-import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
+import { exists, readTextFile, rename, writeTextFile } from "@tauri-apps/plugin-fs";
+import { dirname, join } from "@tauri-apps/api/path";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import {
   discoverWorkspaceConfig,
@@ -66,4 +67,21 @@ export async function pickMarkdownFileToSaveAs(defaultPath?: string): Promise<st
     filters: [{ name: "Markdown", extensions: ["md", "mdx"] }],
   });
   return selected ?? undefined;
+}
+
+/**
+ * Renames the file at `uri` to `newName` (kept alongside its existing
+ * directory) and returns the new uri. Refuses to clobber an existing file
+ * at the target path — the caller should surface that as an error rather
+ * than silently overwriting someone else's file.
+ */
+export async function renameDocument(uri: string, newName: string): Promise<string> {
+  const dir = await dirname(uri);
+  const newUri = await join(dir, newName);
+  if (newUri === uri) return uri;
+  if (await exists(newUri)) {
+    throw new Error(`"${newName}" already exists`);
+  }
+  await rename(uri, newUri);
+  return newUri;
 }

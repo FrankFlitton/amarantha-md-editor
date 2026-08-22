@@ -17,13 +17,18 @@ interface FontsourceMeta {
   variants: Record<string, Record<string, Record<string, { url: FontsourceVariantUrls }>>>;
 }
 
+// "heading" has no bundled font of its own — it defaults to the same Geist
+// Sans as the body, so headings look exactly as they do today until someone
+// explicitly picks a distinct heading font (e.g. a serif).
 const BUNDLED_FAMILY: Record<FontSlot, string> = {
   sans: "Geist Variable",
+  heading: "Geist Variable",
   mono: "Geist Mono Variable",
 };
 
 const SYSTEM_FALLBACK: Record<FontSlot, string> = {
   sans: "ui-sans-serif, system-ui, -apple-system, sans-serif",
+  heading: "ui-sans-serif, system-ui, -apple-system, sans-serif",
   mono: "ui-monospace, SFMono-Regular, Menlo, monospace",
 };
 

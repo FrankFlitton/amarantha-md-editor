@@ -1,4 +1,4 @@
-export type FontSlot = "sans" | "mono";
+export type FontSlot = "sans" | "heading" | "mono";
 
 export type FontSourceKind = "bundled" | "fontsource" | "system";
 

@@ -7,6 +7,8 @@
  */
 :root {
   --am-font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* No bundled heading font of its own — defaults to the body font until overridden. */
+  --am-font-heading: var(--am-font-sans);
   --am-font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
@@ -19,4 +21,10 @@
 .amarantha-app .source-view,
 .amarantha-app .amarantha-jsx-prop-expression {
   font-family: var(--am-font-mono);
+}
+
+/* MDXEditor has no heading-specific font token of its own (headings just
+   inherit --font-body, see mdxeditor-adapter.css) — targeted directly here. */
+.amarantha-app .amarantha-prose.prose :where(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--am-font-heading);
 }

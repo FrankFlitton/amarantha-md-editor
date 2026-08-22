@@ -4,12 +4,13 @@ import { AmaranthaEditor, type EditorMode } from "@amarantha/editor";
 import type { ComponentRegistry, FontPreference, FontSlot, ProseSize, ThemeFamily, ThemeModePreference } from "@amarantha/core";
 import { DEFAULT_FONT_PREFERENCE } from "@amarantha/core";
 import { themeId } from "@amarantha/theme";
-import { desktopHost, pickMarkdownFileToOpen, pickMarkdownFileToSaveAs } from "./lib/desktopHost";
+import { desktopHost, pickMarkdownFileToOpen, pickMarkdownFileToSaveAs, renameDocument } from "./lib/desktopHost";
 import { createImageHandlers } from "./lib/imageHost";
-import { resolveFontFamily } from "./lib/fontHost";
 import { usePersistentState, useSystemPrefersDark } from "./lib/preferences";
+import { useFontVariable } from "./lib/useFontVariable";
 import { installNativeMenu, type NativeMenuActions, type NativeMenuHandle, type NativeMenuState } from "./lib/nativeMenu";
 import { FontPromptModal, type FontPromptRequest } from "./FontPromptModal";
+import { DocumentHeader } from "./DocumentHeader";
 import "./App.css";
 
 function filenameFromUri(uri: string | null): string {
@@ -33,15 +34,20 @@ function App() {
   );
   const [sizePreference, setSizePreference] = usePersistentState<ProseSize>("amarantha:size", "base");
   const [sansFont, setSansFont] = usePersistentState<FontPreference>("amarantha:font-sans", DEFAULT_FONT_PREFERENCE);
+  const [headingFont, setHeadingFont] = usePersistentState<FontPreference>(
+    "amarantha:font-heading",
+    DEFAULT_FONT_PREFERENCE
+  );
   const [monoFont, setMonoFont] = usePersistentState<FontPreference>("amarantha:font-mono", DEFAULT_FONT_PREFERENCE);
-  const [sansFontError, setSansFontError] = useState<string | undefined>(undefined);
-  const [monoFontError, setMonoFontError] = useState<string | undefined>(undefined);
   const [fontPromptRequest, setFontPromptRequest] = useState<FontPromptRequest | null>(null);
+  const [pendingFilename, setPendingFilename] = useState("Untitled.md");
+  const [renameError, setRenameError] = useState<string | undefined>(undefined);
 
   const systemPrefersDark = useSystemPrefersDark();
 
   const dirty = text !== savedText;
   const imageHandlers = useMemo(() => createImageHandlers(uri), [uri]);
+  const displayName = uri ? filenameFromUri(uri) : pendingFilename;
 
   const effectiveFamily = familyPreference ?? repoThemeFamily ?? "ember";
   const effectiveMode = modePreference === "system" ? (systemPrefersDark ? "dark" : "light") : modePreference;
@@ -62,7 +68,7 @@ function App() {
   const handleSave = useCallback(async () => {
     let targetUri = uri;
     if (!targetUri) {
-      targetUri = (await pickMarkdownFileToSaveAs()) ?? null;
+      targetUri = (await pickMarkdownFileToSaveAs(pendingFilename)) ?? null;
       if (!targetUri) return;
       setUri(targetUri);
     }
@@ -75,14 +81,37 @@ function App() {
     if (result.ok) {
       setSavedText(text);
     }
-  }, [uri, text]);
+  }, [uri, text, pendingFilename]);
+
+  const handleRename = useCallback(
+    async (newName: string) => {
+      if (!uri) {
+        setPendingFilename(newName);
+        return;
+      }
+      try {
+        const newUri = await renameDocument(uri, newName);
+        setUri(newUri);
+        setRenameError(undefined);
+      } catch (error) {
+        setRenameError(error instanceof Error ? error.message : "Rename failed");
+      }
+    },
+    [uri]
+  );
 
   const setFont = useCallback(
     (slot: FontSlot, pref: FontPreference) => {
       if (slot === "sans") setSansFont(pref);
+      else if (slot === "heading") setHeadingFont(pref);
       else setMonoFont(pref);
     },
-    [setSansFont, setMonoFont]
+    [setSansFont, setHeadingFont, setMonoFont]
+  );
+
+  const fontForSlot = useCallback(
+    (slot: FontSlot): FontPreference => (slot === "sans" ? sansFont : slot === "heading" ? headingFont : monoFont),
+    [sansFont, headingFont, monoFont]
   );
 
   useEffect(() => {
@@ -93,40 +122,17 @@ function App() {
   }, []);
 
   useEffect(() => {
-    void getCurrentWindow().setTitle(dirty ? `• ${filenameFromUri(uri)}` : filenameFromUri(uri));
-  }, [uri, dirty]);
+    // A missing core:window:allow-set-title capability makes this reject
+    // silently (permission denied) rather than throw visibly — surfaced
+    // once via console.error instead of an unhandled rejection.
+    getCurrentWindow()
+      .setTitle(dirty ? `• ${displayName}` : displayName)
+      .catch((error: unknown) => console.error("setTitle failed:", error));
+  }, [displayName, dirty]);
 
-  useEffect(() => {
-    let cancelled = false;
-    void resolveFontFamily(sansFont, "sans")
-      .then((family) => {
-        if (cancelled) return;
-        setSansFontError(undefined);
-        document.documentElement.style.setProperty("--am-font-sans", family);
-      })
-      .catch((error: unknown) => {
-        if (!cancelled) setSansFontError(error instanceof Error ? error.message : "Failed to load font");
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [sansFont]);
-
-  useEffect(() => {
-    let cancelled = false;
-    void resolveFontFamily(monoFont, "mono")
-      .then((family) => {
-        if (cancelled) return;
-        setMonoFontError(undefined);
-        document.documentElement.style.setProperty("--am-font-mono", family);
-      })
-      .catch((error: unknown) => {
-        if (!cancelled) setMonoFontError(error instanceof Error ? error.message : "Failed to load font");
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [monoFont]);
+  const sansFontError = useFontVariable(sansFont, "sans", "--am-font-sans");
+  const headingFontError = useFontVariable(headingFont, "heading", "--am-font-heading");
+  const monoFontError = useFontVariable(monoFont, "mono", "--am-font-mono");
 
   // The native menu (installed once) and its action callbacks must never see
   // stale state: actionsRef/stateRef are refreshed every render and the menu
@@ -144,7 +150,7 @@ function App() {
     onSetSize: setSizePreference,
     onSetFont: setFont,
     onPromptCustomFont: (slot) => {
-      const current = slot === "sans" ? sansFont : monoFont;
+      const current = fontForSlot(slot);
       setFontPromptRequest({
         slot,
         kind: "fontsource",
@@ -152,7 +158,7 @@ function App() {
       });
     },
     onPromptSystemFont: (slot) => {
-      const current = slot === "sans" ? sansFont : monoFont;
+      const current = fontForSlot(slot);
       setFontPromptRequest({
         slot,
         kind: "system",
@@ -160,7 +166,15 @@ function App() {
       });
     },
   };
-  stateRef.current = { editorMode: mode, familyPreference, modePreference, sizePreference, sansFont, monoFont };
+  stateRef.current = {
+    editorMode: mode,
+    familyPreference,
+    modePreference,
+    sizePreference,
+    sansFont,
+    headingFont,
+    monoFont,
+  };
 
   useEffect(() => {
     const stableActions: NativeMenuActions = {
@@ -182,13 +196,19 @@ function App() {
 
   useEffect(() => {
     void menuHandleRef.current?.sync(stateRef.current);
-  }, [mode, familyPreference, modePreference, sizePreference, sansFont, monoFont]);
+  }, [mode, familyPreference, modePreference, sizePreference, sansFont, headingFont, monoFont]);
 
   return (
     <div
       className={`app-shell amarantha-app ${effectiveMode === "dark" ? "dark" : "light-theme"}`}
       data-theme={effectiveThemeId}
     >
+      <DocumentHeader
+        name={displayName}
+        dirty={dirty}
+        error={renameError}
+        onRename={(newName) => void handleRename(newName)}
+      />
       <main className="editor-surface">
         {/* MDXEditor's `markdown` prop (and its plugin list, including jsxPlugin's
             componentRegistry-derived descriptors) only seed initial state and
@@ -205,9 +225,10 @@ function App() {
           proseSize={sizePreference}
         />
       </main>
-      {(sansFontError || monoFontError) && (
+      {(sansFontError || headingFontError || monoFontError) && (
         <div className="font-error-banner" data-testid="font-error-banner">
           {sansFontError && <span>Body font: {sansFontError}</span>}
+          {headingFontError && <span>Heading font: {headingFontError}</span>}
           {monoFontError && <span>Code font: {monoFontError}</span>}
         </div>
       )}
