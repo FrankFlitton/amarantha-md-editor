@@ -22,6 +22,8 @@ import type { Ref } from "react";
 import type { ComponentRegistry, ProseSize } from "@amarantha/core";
 import { SourceView } from "./SourceView";
 import { createJsxComponentDescriptors } from "./jsx/descriptors";
+import { toolbarPlugin } from "./toolbar";
+import { AmaranthaToolbarContents } from "./toolbar/AmaranthaToolbarContents";
 
 export type EditorMode = "rich" | "source";
 
@@ -91,9 +93,11 @@ export function AmaranthaEditor({
         markdown={value}
         onChange={onChange}
         contentEditableClassName={`${proseClassName} ${PROSE_SIZE_CLASS[proseSize]}`}
-        // Deliberately no toolbarPlugin: MDXEditor renders no toolbar chrome
-        // unless it's opted in, which is what gives the minimalist canvas.
+        // Vendored, selection-triggered toolbar (see ./toolbar) instead of upstream's
+        // always-visible toolbarPlugin: it stays hidden until text is selected, which
+        // is what keeps the minimalist canvas while still surfacing formatting controls.
         plugins={[
+          toolbarPlugin({ toolbarContents: () => <AmaranthaToolbarContents /> }),
           headingsPlugin(),
           listsPlugin(),
           quotePlugin(),
