@@ -1,5 +1,5 @@
 import type { AmaranthaConfig, FsAdapter, WorkspaceConfig } from "./config";
-import { mergeComponentDefinitions } from "./registryMerge";
+import { mergeComponentDefinitions, mergeFrontmatterFields } from "./registryMerge";
 import type { DocumentUri } from "./types";
 
 const CONFIG_FILE_NAME = "amarantha.config.json";
@@ -17,7 +17,7 @@ const MAX_ANCESTORS = 50;
  */
 export async function discoverWorkspaceConfig(docUri: DocumentUri, fs: FsAdapter): Promise<WorkspaceConfig> {
   if (!docUri) {
-    return { theme: undefined, componentDefinitions: [] };
+    return { theme: undefined, componentDefinitions: [], frontmatterFields: {} };
   }
 
   const found: AmaranthaConfig[] = [];
@@ -40,12 +40,14 @@ export async function discoverWorkspaceConfig(docUri: DocumentUri, fs: FsAdapter
 
   let theme: WorkspaceConfig["theme"];
   let componentDefinitions: ComponentDefinitionsAccumulator = [];
+  let frontmatterFields: WorkspaceConfig["frontmatterFields"] = {};
   for (const config of found) {
     if (config.theme !== undefined) theme = config.theme;
     componentDefinitions = mergeComponentDefinitions(componentDefinitions, config.components ?? []);
+    frontmatterFields = mergeFrontmatterFields(frontmatterFields, config.frontmatter ?? {});
   }
 
-  return { theme, componentDefinitions };
+  return { theme, componentDefinitions, frontmatterFields };
 }
 
 type ComponentDefinitionsAccumulator = WorkspaceConfig["componentDefinitions"];

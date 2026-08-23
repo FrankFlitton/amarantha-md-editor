@@ -48,3 +48,62 @@
   --admonitionNoteBg: var(--am-surface);
   --admonitionNoteBorder: var(--am-accent);
 }
+
+/*
+ * Same mapping, at a scope that also reaches MDXEditor UI that portals
+ * straight to document.body instead of rendering inside `.mdxeditor` —
+ * the floating toolbar (FloatingToolbar.tsx) and any Radix tooltip/dialog,
+ * whose portal target (`editorRootElementRef$`) is a separate
+ * `mdxeditor-popup-container` div MDXEditor itself appends to
+ * document.body. Neither is a descendant of `.amarantha-app .mdxeditor`,
+ * so the rule above alone never reached them — they only ever saw
+ * @mdxeditor/editor's own hardcoded stock light-mode fallback, in every
+ * app theme.
+ *
+ * `html[data-theme]` works as the base scope here because App.tsx mirrors
+ * its `data-theme` onto `document.documentElement` (not just the
+ * .amarantha-app div), specifically so custom properties reach the whole
+ * document by inheritance, portal targets included.
+ *
+ * That alone is not sufficient for the popup-container div specifically:
+ * it also carries a CSS-module class (`styles.editorRoot`, confirmed in
+ * @mdxeditor/editor/dist/MDXEditor.js — same hashed class the main editor
+ * wrapper carries too) that directly declares this exact same variable set
+ * on itself (its own stock light-mode colors). A direct declaration on an
+ * element always wins over a value the element would otherwise inherit
+ * from an ancestor, no matter how specific the ancestor rule is —
+ * specificity only decides between rules that target the *same* element.
+ * That hashed class cannot be targeted from this plain (non-module)
+ * stylesheet, so target the one *stable, unhashed* class MDXEditor.js
+ * also puts on that exact div instead: literal string
+ * "mdxeditor-popup-container", added alongside the hashed one specifically
+ * so host CSS has something reliable to hook (confirmed by inspecting
+ * getComputedStyle at every level of the popup-container's ancestor chain
+ * in a real browser — the html[data-theme]-only rule below reached <body>
+ * correctly but stopped exactly at that div). Includes --baseBase, which
+ * the rule above omits — the tooltip is the one thing in this stylesheet
+ * that needs it.
+ */
+html[data-theme],
+html[data-theme] .mdxeditor-popup-container {
+  --baseBg: var(--am-surface);
+  --baseBgSubtle: var(--am-surface);
+  --baseBgHover: var(--am-border);
+  --baseBgActive: var(--am-border);
+  --baseBase: var(--am-bg);
+  --baseText: var(--am-text);
+  --baseTextContrast: var(--am-text);
+  --baseBorder: var(--am-border);
+  --baseBorderHover: var(--am-accent);
+  --baseSolid: var(--am-text-muted);
+  --baseSolidHover: var(--am-text);
+
+  --accentBase: var(--am-surface);
+  --accentBg: var(--am-surface);
+  --accentBgSubtle: var(--am-surface);
+  --accentBorder: var(--am-accent);
+  --accentSolid: var(--am-accent);
+  --accentSolidHover: var(--am-accent);
+  --accentText: var(--am-accent);
+  --accentTextContrast: var(--am-accent-text);
+}

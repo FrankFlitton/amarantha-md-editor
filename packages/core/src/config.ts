@@ -1,4 +1,4 @@
-import type { ComponentDefinition } from "./types";
+import type { ComponentDefinition, FrontmatterFieldDefinition } from "./types";
 import type { ThemeFamily } from "./theme";
 
 /**
@@ -12,6 +12,8 @@ export interface AmaranthaConfig {
   /** A palette opinion only — never pins light/dark mode, that stays a separate user preference. */
   theme?: ThemeFamily;
   components?: ComponentDefinition[];
+  /** Declares known frontmatter fields for this repo (RFC: not mandatory for every document). */
+  frontmatter?: Record<string, FrontmatterFieldDefinition>;
 }
 
 /** Minimal filesystem contract the discovery algorithm needs, so it can run against
@@ -26,4 +28,5 @@ export interface FsAdapter {
 export interface WorkspaceConfig {
   theme?: ThemeFamily;
   componentDefinitions: ComponentDefinition[];
+  frontmatterFields: Record<string, FrontmatterFieldDefinition>;
 }

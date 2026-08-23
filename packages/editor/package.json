@@ -26,11 +26,15 @@
     "classnames": "^2.3.2",
     "downshift": "^7.6.0",
     "lexical": "^0.48.0",
-    "mdast-util-mdx-jsx": "^3.2.0"
+    "lucide-react": "^1.33.0",
+    "mdast-util-frontmatter": "^2.0.1",
+    "mdast-util-mdx-jsx": "^3.2.0",
+    "micromark-extension-frontmatter": "^2.0.0"
   },
   "devDependencies": {
     "@amarantha/mdx": "*",
     "@testing-library/react": "^16.0.0",
+    "@types/mdast": "^4.0.4",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "jsdom": "^25.0.0",

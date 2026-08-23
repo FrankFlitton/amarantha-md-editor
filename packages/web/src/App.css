@@ -1,0 +1,97 @@
+:root {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+.amarantha-app {
+  color: var(--am-text);
+  background-color: var(--am-bg);
+}
+
+.web-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.web-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--am-border);
+  font-size: 13px;
+}
+
+.web-toolbar-spacer {
+  flex: 1;
+}
+
+.web-toolbar-group {
+  display: inline-flex;
+  border: 1px solid var(--am-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.web-toolbar-group button {
+  border: none;
+  border-radius: 0;
+}
+
+.web-toolbar button,
+.web-toolbar select {
+  font: inherit;
+  padding: 5px 10px;
+  border: 1px solid var(--am-border);
+  border-radius: 6px;
+  background: var(--am-surface);
+  color: var(--am-text);
+  cursor: pointer;
+}
+
+.web-toolbar button:hover {
+  background: var(--am-border);
+}
+
+.web-toolbar button[aria-pressed="true"] {
+  background: var(--am-accent);
+  color: var(--am-accent-text);
+  border-color: var(--am-accent);
+}
+
+.web-editor-surface {
+  flex: 1;
+  overflow: auto;
+}
+
+.amarantha-prose {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.source-view {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 24px;
+  font-size: 14px;
+  border: none;
+  resize: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+}

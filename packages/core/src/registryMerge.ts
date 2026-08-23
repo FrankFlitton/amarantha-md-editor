@@ -1,4 +1,4 @@
-import type { ComponentDefinition } from "./types";
+import type { ComponentDefinition, FrontmatterFieldDefinition } from "./types";
 
 /**
  * Merges two component-definition arrays keyed by `name`: entries in
@@ -25,4 +25,12 @@ export function mergeComponentDefinitions(
   }
 
   return merged;
+}
+
+/** Shallow per-key override merge: keys in `override` replace same-name keys in `base`. */
+export function mergeFrontmatterFields(
+  base: Record<string, FrontmatterFieldDefinition>,
+  override: Record<string, FrontmatterFieldDefinition>
+): Record<string, FrontmatterFieldDefinition> {
+  return { ...base, ...override };
 }

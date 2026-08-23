@@ -1,19 +1,23 @@
 import React from 'react'
+import { FileBraces } from 'lucide-react'
 import { ButtonWithTooltip } from '.././primitives/toolbar'
-import { hasFrontmatter$, insertFrontmatter$ } from '@mdxeditor/editor'
+import { hasAmaranthaFrontmatter$ as hasFrontmatter$, insertAmaranthaFrontmatter$ as insertFrontmatter$ } from '../../frontmatter/plugin'
 import styles from '../ui.module.css'
 import classNames from 'classnames'
-import { useCellValues, usePublisher } from '@mdxeditor/gurx'
-import { iconComponentFor$, useTranslation } from '@mdxeditor/editor'
+import { useCellValue, usePublisher } from '@mdxeditor/gurx'
+import { useTranslation } from '@mdxeditor/editor'
 
 /**
  * A toolbar button that allows the user to insert a {@link https://jekyllrb.com/docs/front-matter/ | front-matter} editor (if one is not already present).
- * For this to work, you need to have the `frontmatterPlugin` plugin enabled.
+ * For this to work, you need to have the `amaranthaFrontmatterPlugin` plugin enabled.
+ * Uses lucide-react (see docs/decisions.md) rather than MDXEditor's own
+ * bundled icon set — FileBraces (file + {}) reads as "structured data
+ * attached to this file," which is what frontmatter actually is.
  * @group Toolbar Components
  */
 export const InsertFrontmatter: React.FC = () => {
   const insertFrontmatter = usePublisher(insertFrontmatter$)
-  const [hasFrontmatter, iconComponentFor] = useCellValues(hasFrontmatter$, iconComponentFor$)
+  const hasFrontmatter = useCellValue(hasFrontmatter$)
   const t = useTranslation()
 
   return (
@@ -26,7 +30,7 @@ export const InsertFrontmatter: React.FC = () => {
         insertFrontmatter()
       }}
     >
-      {iconComponentFor('frontmatter')}
+      <FileBraces size={16} />
     </ButtonWithTooltip>
   )
 }

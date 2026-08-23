@@ -170,7 +170,16 @@
   overflow-x: auto;
   position: sticky;
   top: 0;
+  /* The floating toolbar portals straight to document.body
+     (FloatingToolbar.tsx), outside the .amarantha-app .mdxeditor subtree.
+     --baseBg (and every other --base or --accent prefixed var this vendored
+     stylesheet uses) still resolves here, because mdxeditor-adapter.css
+     also maps them at a [data-theme] scope on <html> -- see that file.
+     Left as the semantic --base* name, matching the rest of this vendored
+     stylesheet, rather than reaching for --am-* directly in this file. */
   background-color: var(--baseBg);
+  border: 1px solid var(--baseBorder);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
   width: inherit;
 
   & div[role='separator'] {
@@ -683,6 +692,12 @@
   border-radius: var(--radius-medium);
   padding: var(--spacing-1) var(--spacing-2);
   font-size: var(--text-xs);
+  /* Renders inside a separate mdxeditor-popup-container div that MDXEditor
+     itself appends to document.body (its EditorRootElement component).
+     Resolves correctly via the [data-theme]-scoped mapping in
+     mdxeditor-adapter.css (see that file), same as .toolbarRoot above.
+     Inverted on purpose (background = text color, text = base/page color)
+     for a legible tooltip chip in both light and dark themes. */
   background-color: var(--baseText);
   color: var(--baseBase);
 

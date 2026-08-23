@@ -48,8 +48,8 @@ export const desktopHost: EditorHost = {
   },
 
   async resolveWorkspaceConfig(uri): Promise<WorkspaceHostConfig> {
-    const { theme, componentDefinitions } = await discoverWorkspaceConfig(uri, tauriFsAdapter);
-    return { theme, componentRegistry: createRegistry(componentDefinitions) };
+    const { theme, componentDefinitions, frontmatterFields } = await discoverWorkspaceConfig(uri, tauriFsAdapter);
+    return { theme, componentRegistry: createRegistry(componentDefinitions), frontmatterFields };
   },
 };
 

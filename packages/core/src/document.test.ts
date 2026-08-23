@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detectLineEnding, hashText, toLoadedDocument } from "./document";
+import { detectLineEnding, hashText, hasFrontmatterBlock, toLoadedDocument } from "./document";
 
 describe("detectLineEnding", () => {
   it("detects LF", () => {
@@ -22,6 +22,32 @@ describe("hashText", () => {
 
   it("differs for distinct inputs", () => {
     expect(hashText("hello")).not.toBe(hashText("world"));
+  });
+});
+
+describe("hasFrontmatterBlock", () => {
+  it("detects a well-formed leading frontmatter block", () => {
+    expect(hasFrontmatterBlock("---\ntitle: Draft\n---\n# Heading")).toBe(true);
+  });
+
+  it("detects an empty frontmatter block", () => {
+    expect(hasFrontmatterBlock("---\n---\n")).toBe(true);
+  });
+
+  it("handles CRLF line endings", () => {
+    expect(hasFrontmatterBlock("---\r\ntitle: Draft\r\n---\r\n# Heading")).toBe(true);
+  });
+
+  it("is false when there is no frontmatter", () => {
+    expect(hasFrontmatterBlock("# Heading\nbody text")).toBe(false);
+  });
+
+  it("is false when the fence isn't at the very start of the document", () => {
+    expect(hasFrontmatterBlock("# Heading\n---\ntitle: Draft\n---\n")).toBe(false);
+  });
+
+  it("is false for an unclosed fence", () => {
+    expect(hasFrontmatterBlock("---\ntitle: Draft\n# Heading")).toBe(false);
   });
 });
 

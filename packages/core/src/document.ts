@@ -6,6 +6,16 @@ export function detectLineEnding(text: string): "lf" | "crlf" {
   return "lf";
 }
 
+// Mirrors micromark-extension-frontmatter's own "yaml" fence rule: a `---`
+// line at the very start of the document, closed by a lone `---` line — so
+// this check never disagrees with what the editor actually parses as
+// frontmatter.
+const FRONTMATTER_BLOCK_RE = /^---\r?\n(?:.*\r?\n)*?---(?:\r?\n|$)/;
+
+export function hasFrontmatterBlock(text: string): boolean {
+  return FRONTMATTER_BLOCK_RE.test(text);
+}
+
 /**
  * Placeholder revision fingerprint (DJB2 hash of the text). This is NOT a
  * real conflict-detection mechanism yet — it exists so LoadedDocument.revision

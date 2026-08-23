@@ -67,9 +67,24 @@ export interface ComponentRegistry {
   list?(): readonly ComponentDefinition[];
 }
 
+// Declarative per-repository frontmatter field schema (RFC "Frontmatter as
+// skill-friendly document context"). Structurally mirrors ComponentPropDefinition
+// but is kept as its own type: document-metadata fields (dates, agent-facing
+// descriptions) are likely to diverge from component-prop needs over time.
+export type FrontmatterFieldType = "string" | "number" | "boolean" | "enum" | "expression";
+
+export interface FrontmatterFieldDefinition {
+  type: FrontmatterFieldType;
+  required?: boolean;
+  /** Allowed values, for type "enum". */
+  values?: readonly string[];
+  description?: string;
+}
+
 export interface WorkspaceHostConfig {
   theme?: ThemeFamily;
   componentRegistry: ComponentRegistry;
+  frontmatterFields: Record<string, FrontmatterFieldDefinition>;
 }
 
 /**

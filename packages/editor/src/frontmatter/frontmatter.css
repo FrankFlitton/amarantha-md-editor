@@ -1,0 +1,138 @@
+/* Deliberately no border/background box around the whole block: it reads as
+   a direct continuation of the document, not a separate form — only the
+   bottom rule marks where the frontmatter ends and the document body begins.
+
+   Grid, not flex: rows share display:contents so every row's key sits in
+   the same column and every colon lands at the same x position (tab-aligned)
+   regardless of how long any individual key is. */
+.amarantha-frontmatter-block {
+  display: grid;
+  grid-template-columns: max-content max-content minmax(0, 1fr);
+  column-gap: 6px;
+  row-gap: 2px;
+  align-items: start;
+  padding: 4px 0 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--am-border);
+  font-size: 13px;
+}
+
+.amarantha-frontmatter-row {
+  display: contents;
+}
+
+/* Interactive affordance (grey bg on hover/focus, no outline/underline) comes
+   from the shared .amarantha-inline-editable class in InlineEditableText.css
+   — these rules are typography only. */
+.amarantha-frontmatter-key {
+  color: var(--am-text-muted);
+  white-space: nowrap;
+}
+
+.amarantha-frontmatter-value {
+  color: var(--am-text);
+  min-width: 0;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.amarantha-frontmatter-colon {
+  color: var(--am-text-muted);
+}
+
+.amarantha-frontmatter-array {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.amarantha-frontmatter-array-item {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.amarantha-frontmatter-array-add {
+  background: none;
+  border: none;
+  color: var(--am-text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 3px;
+  align-self: flex-start;
+}
+
+.amarantha-frontmatter-array-add:hover {
+  background: var(--am-surface);
+  color: var(--am-text);
+}
+
+.amarantha-frontmatter-placeholder,
+.amarantha-frontmatter-key:empty::before,
+.amarantha-frontmatter-value:empty::before {
+  color: var(--am-text-muted);
+  font-style: italic;
+}
+
+.amarantha-frontmatter-key:empty::before,
+.amarantha-frontmatter-value:empty::before {
+  content: attr(data-placeholder);
+}
+
+.amarantha-frontmatter-add,
+.amarantha-frontmatter-raw-toggle {
+  grid-column: 1 / -1;
+}
+
+.amarantha-frontmatter-add {
+  justify-self: start;
+  margin: 4px 0 2px;
+  background: none;
+  border: none;
+  color: var(--am-text-muted);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.amarantha-frontmatter-add:hover {
+  background: var(--am-surface);
+  color: var(--am-text);
+}
+
+.amarantha-frontmatter-raw-toggle {
+  justify-self: start;
+  margin-top: 4px;
+  background: none;
+  border: none;
+  color: var(--am-text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.amarantha-frontmatter-raw-toggle:hover {
+  color: var(--am-text);
+}
+
+.amarantha-frontmatter-raw {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 120px;
+  margin-top: 6px;
+  padding: 6px;
+  border: 1px solid var(--am-border);
+  border-radius: 4px;
+  font-family: var(--am-font-mono);
+  font-size: 12px;
+  resize: vertical;
+  background: var(--am-bg);
+  color: var(--am-text);
+  box-sizing: border-box;
+}

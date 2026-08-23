@@ -43,14 +43,16 @@ body,
   -webkit-app-region: drag;
 }
 
-.doc-header-name,
-.doc-header-input {
+.doc-header-name-group {
   -webkit-app-region: no-drag;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   max-width: min(60%, 480px);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
   font-weight: 600;
   font-size: 13px;
@@ -58,31 +60,56 @@ body,
   text-align: center;
 }
 
+/* .doc-header-name is an InlineEditableText — its edit affordance (grey bg
+   on hover/focus, no outline) comes from the shared .amarantha-inline-editable
+   class; this is layout/truncation only. */
 .doc-header-name {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: none;
-  background: transparent;
-  padding: 2px 8px;
-  border-radius: 4px;
-  cursor: text;
+  min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  font: inherit;
+  color: inherit;
 }
 
-.doc-header-name:hover {
-  background: var(--am-surface);
+.doc-header-right {
+  -webkit-app-region: no-drag;
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.doc-header-input {
+.doc-header-selection-stats {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  font-size: 11px;
+  color: var(--am-text-muted);
+  white-space: nowrap;
+}
+
+.doc-header-frontmatter-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
   border: none;
-  border-bottom: 1px solid var(--am-accent);
-  background: transparent;
-  padding: 2px 4px;
-  outline: none;
-  width: 240px;
+  padding: 2px;
+  border-radius: 3px;
+  color: var(--am-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.doc-header-frontmatter-glyph[aria-pressed="true"] {
+  color: var(--am-accent);
+}
+
+.doc-header-frontmatter-glyph:hover {
+  background: var(--am-surface);
+  color: var(--am-text);
 }
 
 .doc-header-dot {

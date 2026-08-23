@@ -14,16 +14,16 @@ import {
   codeBlockPlugin,
   codeMirrorPlugin,
   imagePlugin,
-  frontmatterPlugin,
   jsxPlugin,
   markdownShortcutPlugin,
 } from "@mdxeditor/editor";
 import type { Ref } from "react";
-import type { ComponentRegistry, ProseSize } from "@amarantha/core";
+import type { ComponentRegistry, FrontmatterFieldDefinition, ProseSize } from "@amarantha/core";
 import { SourceView } from "./SourceView";
 import { createJsxComponentDescriptors } from "./jsx/descriptors";
 import { toolbarPlugin } from "./toolbar";
 import { AmaranthaToolbarContents } from "./toolbar/AmaranthaToolbarContents";
+import { amaranthaFrontmatterPlugin } from "./frontmatter/plugin";
 
 export type EditorMode = "rich" | "source";
 
@@ -55,6 +55,10 @@ export interface AmaranthaEditorProps {
   proseClassName?: string;
   /** Tailwind Typography size modifier applied on top of proseClassName. */
   proseSize?: ProseSize;
+  /** Host-supplied: repo-declared frontmatter field schema (RFC: not mandatory per document). */
+  frontmatterFields?: Record<string, FrontmatterFieldDefinition>;
+  /** Host-supplied: session-only visibility toggle for the frontmatter strip, driven by DocumentHeader's glyph. */
+  frontmatterHidden?: boolean;
 }
 
 const CODE_BLOCK_LANGUAGES = {
@@ -79,6 +83,8 @@ export function AmaranthaEditor({
   componentRegistry,
   proseClassName = "amarantha-prose prose",
   proseSize = "base",
+  frontmatterFields,
+  frontmatterHidden,
 }: AmaranthaEditorProps) {
   if (mode === "source") {
     return <SourceView value={value} onChange={onChange} />;
@@ -111,7 +117,7 @@ export function AmaranthaEditor({
             imageUploadHandler: imageUploadHandler ?? null,
             imagePreviewHandler: imagePreviewHandler ?? null,
           }),
-          frontmatterPlugin(),
+          amaranthaFrontmatterPlugin({ fields: frontmatterFields, hidden: frontmatterHidden }),
           ...(jsxComponentDescriptors ? [jsxPlugin({ jsxComponentDescriptors })] : []),
           markdownShortcutPlugin(),
         ]}

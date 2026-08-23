@@ -6,6 +6,7 @@
   ],
   "scripts": {
     "dev": "npm run tauri dev --workspace @amarantha/desktop",
+    "dev:web": "npm run dev --workspace @amarantha/web",
     "build": "npm run build --workspace @amarantha/desktop",
     "test": "npm test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present"

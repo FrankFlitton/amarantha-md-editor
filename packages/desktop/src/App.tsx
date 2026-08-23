@@ -1,8 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { AmaranthaEditor, type EditorMode } from "@amarantha/editor";
-import type { ComponentRegistry, FontPreference, FontSlot, ProseSize, ThemeFamily, ThemeModePreference } from "@amarantha/core";
-import { DEFAULT_FONT_PREFERENCE } from "@amarantha/core";
+import type {
+  ComponentRegistry,
+  FontPreference,
+  FontSlot,
+  FrontmatterFieldDefinition,
+  ProseSize,
+  ThemeFamily,
+  ThemeModePreference,
+} from "@amarantha/core";
+import { DEFAULT_FONT_PREFERENCE, hasFrontmatterBlock } from "@amarantha/core";
 import { themeId } from "@amarantha/theme";
 import { desktopHost, pickMarkdownFileToOpen, pickMarkdownFileToSaveAs, renameDocument } from "./lib/desktopHost";
 import { createImageHandlers } from "./lib/imageHost";
@@ -27,6 +35,8 @@ function App() {
   const [savedText, setSavedText] = useState("");
   const [mode, setMode] = useState<EditorMode>("rich");
   const [componentRegistry, setComponentRegistry] = useState<ComponentRegistry | undefined>(undefined);
+  const [frontmatterFields, setFrontmatterFields] = useState<Record<string, FrontmatterFieldDefinition>>({});
+  const [frontmatterHidden, setFrontmatterHidden] = useState(false);
   const [repoThemeFamily, setRepoThemeFamily] = useState<ThemeFamily | undefined>(undefined);
 
   const [modePreference, setModePreference] = usePersistentState<ThemeModePreference>("amarantha:mode", "system");
@@ -48,6 +58,7 @@ function App() {
   const systemPrefersDark = useSystemPrefersDark();
 
   const dirty = text !== savedText;
+  const hasFrontmatter = useMemo(() => hasFrontmatterBlock(text), [text]);
   const imageHandlers = useMemo(() => createImageHandlers(uri), [uri]);
   const displayName = uri ? filenameFromUri(uri) : pendingFilename;
 
@@ -60,9 +71,11 @@ function App() {
     setUri(doc.uri);
     setText(doc.text);
     setSavedText(doc.text);
-    const { theme, componentRegistry } = await desktopHost.resolveWorkspaceConfig(doc.uri);
+    setFrontmatterHidden(false);
+    const { theme, componentRegistry, frontmatterFields } = await desktopHost.resolveWorkspaceConfig(doc.uri);
     setRepoThemeFamily(theme);
     setComponentRegistry(componentRegistry);
+    setFrontmatterFields(frontmatterFields);
   }, []);
 
   const handleOpen = useCallback(async () => {
@@ -154,9 +167,10 @@ function App() {
       void loadDocument(openUri);
       return;
     }
-    void desktopHost.resolveWorkspaceConfig("").then(({ theme, componentRegistry }) => {
+    void desktopHost.resolveWorkspaceConfig("").then(({ theme, componentRegistry, frontmatterFields }) => {
       setRepoThemeFamily(theme);
       setComponentRegistry(componentRegistry);
+      setFrontmatterFields(frontmatterFields);
     });
   }, [loadDocument]);
 
@@ -168,6 +182,21 @@ function App() {
       .setTitle(dirty ? `• ${displayName}` : displayName)
       .catch((error: unknown) => console.error("setTitle failed:", error));
   }, [displayName, dirty]);
+
+  useEffect(() => {
+    // `--am-*` tokens are only *defined* by tokens.css on whichever element
+    // actually carries `data-theme` — normally the .amarantha-app div below.
+    // Content portaled straight to document.body (the floating toolbar and
+    // its tooltip, MDXEditor's own dialog/popup container) lives outside
+    // that div's subtree, so it never saw the app's chosen theme at all —
+    // only tokens.css's `:root:not([data-theme])` fallback, which tracks
+    // raw OS prefers-color-scheme instead of the user's actual family/mode
+    // preference. Mirroring data-theme onto <html> makes it resolve
+    // correctly everywhere in the document, portals included, since custom
+    // properties cascade from a real DOM ancestor regardless of where a
+    // React portal's target node sits.
+    document.documentElement.dataset.theme = effectiveThemeId;
+  }, [effectiveThemeId]);
 
   const sansFontError = useFontVariable(sansFont, "sans", "--am-font-sans");
   const headingFontError = useFontVariable(headingFont, "heading", "--am-font-heading");
@@ -247,12 +276,18 @@ function App() {
         dirty={dirty}
         error={renameError}
         onRename={(newName) => void handleRename(newName)}
+        hasFrontmatter={hasFrontmatter}
+        frontmatterHidden={frontmatterHidden}
+        onToggleFrontmatterVisibility={() => setFrontmatterHidden((h) => !h)}
       />
       <main className="editor-surface" onMouseDown={handleEditorSurfaceMouseDown}>
         {/* MDXEditor's `markdown` prop (and its plugin list, including jsxPlugin's
             componentRegistry-derived descriptors) only seed initial state and
             don't react to later prop changes, so file/mode/registry changes
-            need a remount rather than relying on the prop update. */}
+            need a remount rather than relying on the prop update. frontmatterFields/
+            frontmatterHidden are deliberately excluded: amaranthaFrontmatterPlugin
+            implements the update() lifecycle hook, so they push into the mounted
+            editor live instead, preserving cursor/undo history across the toggle. */}
         <AmaranthaEditor
           key={`${uri ?? "untitled"}:${mode}:${componentRegistry ? "reg" : "noreg"}:${sizePreference}`}
           value={text}
@@ -262,6 +297,8 @@ function App() {
           imagePreviewHandler={imageHandlers.imagePreviewHandler}
           componentRegistry={componentRegistry}
           proseSize={sizePreference}
+          frontmatterFields={frontmatterFields}
+          frontmatterHidden={frontmatterHidden}
         />
       </main>
       {(sansFontError || headingFontError || monoFontError) && (

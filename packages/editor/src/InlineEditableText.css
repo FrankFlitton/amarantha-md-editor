@@ -1,0 +1,14 @@
+/* Shared edit affordance for every click-to-edit text field in the app
+   (frontmatter keys/values, the document filename): a grey background on
+   hover/focus, nothing else — no underline, no outline. */
+.amarantha-inline-editable {
+  cursor: text;
+  border-radius: 3px;
+  padding: 1px 4px;
+  outline: none;
+}
+
+.amarantha-inline-editable:hover,
+.amarantha-inline-editable:focus {
+  background: var(--am-surface);
+}

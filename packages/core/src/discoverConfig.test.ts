@@ -28,13 +28,13 @@ describe("discoverWorkspaceConfig", () => {
   it("returns empty config when no config file exists anywhere", async () => {
     const fs = fakeFs({});
     const result = await discoverWorkspaceConfig("/repo/doc.md", fs);
-    expect(result).toEqual({ theme: undefined, componentDefinitions: [] });
+    expect(result).toEqual({ theme: undefined, componentDefinitions: [], frontmatterFields: {} });
   });
 
   it("returns empty config for an empty/unsaved document uri", async () => {
     const fs = fakeFs({ "/amarantha.config.json": JSON.stringify({ root: true, theme: "cream" }) });
     const result = await discoverWorkspaceConfig("", fs);
-    expect(result).toEqual({ theme: undefined, componentDefinitions: [] });
+    expect(result).toEqual({ theme: undefined, componentDefinitions: [], frontmatterFields: {} });
   });
 
   it("microrepo: a single root config applies and stops the walk", async () => {
@@ -79,5 +79,23 @@ describe("discoverWorkspaceConfig", () => {
     });
     const result = await discoverWorkspaceConfig("/repo/docs/doc.md", fs);
     expect(result.theme).toBe("ember");
+  });
+
+  it("accumulates and merges declared frontmatter fields the same way as components", async () => {
+    const fs = fakeFs({
+      "/repo/amarantha.config.json": JSON.stringify({
+        root: true,
+        frontmatter: {
+          title: { type: "string", required: true },
+          status: { type: "enum", values: ["draft", "review"] },
+        },
+      }),
+      "/repo/packages/site/amarantha.config.json": JSON.stringify({
+        frontmatter: { status: { type: "enum", values: ["draft", "review", "published"] } },
+      }),
+    });
+    const result = await discoverWorkspaceConfig("/repo/packages/site/docs/doc.md", fs);
+    expect(Object.keys(result.frontmatterFields)).toEqual(["title", "status"]);
+    expect(result.frontmatterFields.status.values).toEqual(["draft", "review", "published"]);
   });
 });
