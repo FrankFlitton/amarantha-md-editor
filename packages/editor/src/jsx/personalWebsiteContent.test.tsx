@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { personalWebsiteRegistry } from "@amarantha/mdx";
 import { AmaranthaEditor } from "../AmaranthaEditor";
@@ -48,14 +48,22 @@ describe("personalWebsiteRegistry against real content patterns", () => {
     );
   });
 
-  it("renders Mermaid's multi-line chart prop as an expression textarea", () => {
+  it("Mermaid defaults to viewing the rendered diagram, with a toggle to its chart source", () => {
     const markdown = "<Mermaid chart={`graph TD\n  A --> B\n  B --> C`} />\n";
     render(
       <AmaranthaEditor value={markdown} onChange={() => {}} mode="rich" componentRegistry={personalWebsiteRegistry} />
     );
+    // Default: diagram preview visible, no chart textarea in the DOM at all
+    // (see MermaidDiagram.test.tsx for the diagram's own render/debounce behavior).
+    expect(screen.getByTestId("mermaid-preview")).toBeTruthy();
+    expect(screen.queryByTestId("jsx-prop-chart")).toBeNull();
+
+    fireEvent.click(screen.getByTestId("mermaid-toggle-code"));
+
     const chartField = screen.getByTestId("jsx-prop-chart") as HTMLTextAreaElement;
     expect(chartField.value).toContain("graph TD");
     expect(chartField.value).toContain("A --> B");
+    expect(screen.queryByTestId("mermaid-preview")).toBeNull();
   });
 
   it("renders UserJourneyMap's nested object/array expression props without crashing", () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MdxJsxAttribute } from "mdast-util-mdx-jsx";
 import type { ComponentPropDefinition } from "@amarantha/core";
-import { buildAttribute, buildAttributes, readAttributeValue } from "./attributes";
+import { buildAttribute, buildAttributes, readAttributeValue, unwrapExpressionLiteral } from "./attributes";
 
 describe("readAttributeValue", () => {
   it("reads a plain string attribute", () => {
@@ -23,6 +23,25 @@ describe("readAttributeValue", () => {
 
   it("reads a missing attribute as empty string", () => {
     expect(readAttributeValue([], "alt")).toBe("");
+  });
+});
+
+describe("unwrapExpressionLiteral", () => {
+  it("strips wrapping backticks from a template literal", () => {
+    expect(unwrapExpressionLiteral("`graph TD\nA-->B`")).toBe("graph TD\nA-->B");
+  });
+
+  it("strips wrapping double or single quotes", () => {
+    expect(unwrapExpressionLiteral('"hello"')).toBe("hello");
+    expect(unwrapExpressionLiteral("'hello'")).toBe("hello");
+  });
+
+  it("leaves unquoted expression source untouched", () => {
+    expect(unwrapExpressionLiteral("[{name:'a'}]")).toBe("[{name:'a'}]");
+  });
+
+  it("trims surrounding whitespace either way", () => {
+    expect(unwrapExpressionLiteral("  `graph TD`  ")).toBe("graph TD");
   });
 });
 

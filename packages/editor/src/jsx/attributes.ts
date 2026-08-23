@@ -19,6 +19,27 @@ export function readAttributeValue(attributes: readonly AnyJsxAttribute[], propN
 }
 
 /**
+ * For an "expression" prop authored as `foo={`chart text`}` or
+ * `foo={"chart text"}`, strips the wrapping quote/backtick characters so
+ * the actual text content can be handed to something that needs it
+ * directly (e.g. a renderer) rather than the raw JS-expression source. The
+ * editable field itself still shows/edits the raw source (backticks
+ * included) via readAttributeValue — this is only for consumers that need
+ * the underlying text.
+ */
+export function unwrapExpressionLiteral(source: string): string {
+  const trimmed = source.trim();
+  if (trimmed.length >= 2) {
+    const first = trimmed[0];
+    const last = trimmed[trimmed.length - 1];
+    if ((first === "`" && last === "`") || (first === '"' && last === '"') || (first === "'" && last === "'")) {
+      return trimmed.slice(1, -1);
+    }
+  }
+  return trimmed;
+}
+
+/**
  * Builds the replacement MdxJsxAttribute for one prop given the field's
  * current string value, or null if the prop should be omitted entirely
  * (empty string, or a false boolean).

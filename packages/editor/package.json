@@ -29,6 +29,7 @@
     "lucide-react": "^1.33.0",
     "mdast-util-frontmatter": "^2.0.1",
     "mdast-util-mdx-jsx": "^3.2.0",
+    "mermaid": "^11.17.0",
     "micromark-extension-frontmatter": "^2.0.0"
   },
   "devDependencies": {

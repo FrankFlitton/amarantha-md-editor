@@ -1,0 +1,29 @@
+.amarantha-mermaid-canvas {
+  display: flex;
+  justify-content: center;
+  overflow-x: auto;
+}
+
+.amarantha-mermaid-canvas:empty {
+  display: none;
+}
+
+.amarantha-mermaid-canvas svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.amarantha-mermaid-empty {
+  padding: 12px 0;
+  color: var(--am-text-muted);
+  font-size: 13px;
+  font-style: italic;
+}
+
+.amarantha-mermaid-error {
+  padding: 12px 0;
+  color: var(--am-text-muted);
+  font-family: var(--am-font-mono);
+  font-size: 12px;
+  white-space: pre-wrap;
+}

@@ -21,6 +21,7 @@ import type { Ref } from "react";
 import type { ComponentRegistry, FrontmatterFieldDefinition, ProseSize } from "@amarantha/core";
 import { SourceView } from "./SourceView";
 import { createJsxComponentDescriptors } from "./jsx/descriptors";
+import { MermaidCodeBlockEditor } from "./jsx/MermaidCodeBlockEditor";
 import { toolbarPlugin } from "./toolbar";
 import { AmaranthaToolbarContents } from "./toolbar/AmaranthaToolbarContents";
 import { amaranthaFrontmatterPlugin } from "./frontmatter/plugin";
@@ -71,6 +72,7 @@ const CODE_BLOCK_LANGUAGES = {
   md: "Markdown",
   html: "HTML",
   css: "CSS",
+  mermaid: "Mermaid",
 };
 
 export function AmaranthaEditor({
@@ -111,7 +113,16 @@ export function AmaranthaEditor({
           linkPlugin(),
           linkDialogPlugin(),
           tablePlugin(),
-          codeBlockPlugin({ defaultCodeBlockLanguage: "" }),
+          codeBlockPlugin({
+            defaultCodeBlockLanguage: "",
+            // Higher than the built-in CodeMirror descriptor's priority (1,
+            // confirmed in @mdxeditor/editor's own source) so a ```mermaid
+            // fence gets the live diagram view instead of plain CodeMirror;
+            // everything else still falls through to that default.
+            codeBlockEditorDescriptors: [
+              { priority: 10, match: (language) => language === "mermaid", Editor: MermaidCodeBlockEditor },
+            ],
+          }),
           codeMirrorPlugin({ codeBlockLanguages: CODE_BLOCK_LANGUAGES }),
           imagePlugin({
             imageUploadHandler: imageUploadHandler ?? null,

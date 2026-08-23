@@ -1,9 +1,26 @@
 .amarantha-jsx-editor {
+  position: relative;
   border: 1px solid var(--am-border);
   border-radius: 8px;
   padding: 12px 14px;
   margin: 8px 0;
   background: var(--am-surface);
+}
+
+/* Applied alongside .amarantha-jsx-editor for a Mermaid diagram's card
+   (both the JSX <Mermaid> form and a fenced ```mermaid block) — same flat
+   treatment as fenced code blocks: no border, no padding box, matching
+   the app's minimalist principle rather than the bordered-form look
+   that's still right for a component with several plain-text prop
+   fields. */
+.amarantha-jsx-editor-flat {
+  border: none;
+  padding: 0;
+  /* A touch more top margin than the base card (which relied on its own
+     padding for this) so the toggle badge, still positioned in the
+     margin above the content, has room without a padded box beneath it. */
+  margin: 14px 0 8px;
+  background: transparent;
 }
 
 .amarantha-jsx-editor-title {
@@ -13,6 +30,29 @@
   margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+}
+
+/* Sits in the card's margin, straddling the top-right corner, rather than
+   inline with the title — a mode toggle (view/edit), not a piece of the
+   component's own content. */
+.amarantha-jsx-editor-toggle {
+  position: absolute;
+  top: -10px;
+  right: -8px;
+  padding: 3px 8px;
+  border: 1px solid var(--am-border);
+  border-radius: 999px;
+  background: var(--am-bg);
+  color: var(--am-text-muted);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.amarantha-jsx-editor-toggle:hover {
+  background: var(--am-surface);
+  color: var(--am-text);
+  border-color: var(--am-accent);
 }
 
 .amarantha-jsx-prop {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AmaranthaEditor, type EditorMode } from "@amarantha/editor";
 import type { ThemeFamily, ThemeMode } from "@amarantha/core";
+import { personalWebsiteRegistry } from "@amarantha/mdx";
 import { THEME_FAMILIES, themeId } from "@amarantha/theme";
 import "./App.css";
 
@@ -18,6 +19,10 @@ without stubbing Tauri's IPC bridge by hand each time.
 
 Try selecting this sentence to see the floating toolbar and the
 selection stats in the header.
+
+<Mermaid chart={\`graph TD
+  A --> B
+  B --> C\`} title="Demo diagram" />
 `;
 
 function App() {
@@ -100,7 +105,13 @@ function App() {
       </div>
 
       <main className="web-editor-surface">
-        <AmaranthaEditor value={text} onChange={setText} mode={mode} proseSize="base" />
+        <AmaranthaEditor
+          value={text}
+          onChange={setText}
+          mode={mode}
+          proseSize="base"
+          componentRegistry={personalWebsiteRegistry}
+        />
       </main>
     </div>
   );

@@ -1,0 +1,56 @@
+/*
+ * Minimalist treatment for code, matching the flat/no-chrome principle
+ * used everywhere else in the app (see docs/decisions.md Session 5): no
+ * border, no padding box, and a font-size that matches surrounding body
+ * text rather than the smaller sizes MDXEditor/Tailwind Typography ship
+ * by default.
+ */
+
+/* Fenced code blocks (rich editor, CodeMirror-backed via codeMirrorPlugin).
+   The wrapper div MDXEditor renders around each block is a CSS-module
+   class (hashed per build, no stable literal name to select directly —
+   confirmed via computed-style inspection in a real browser), so it's
+   targeted structurally instead: the one div, two levels above CodeMirror's
+   own stable .cm-editor class, that MDXEditor puts a border/padding on.
+   (--baseLine, which that border reads, is deliberately left unmapped in
+   mdxeditor-adapter.css rather than aliased here: it's also the color for
+   a disabled toolbar icon elsewhere in the vendored stylesheet, so
+   aliasing it globally would have removed that too.) */
+.amarantha-app .mdxeditor div:has(> div > .cm-editor) {
+  border: none;
+  padding: 0;
+}
+
+/* CodeMirror6's own base theme hardcodes a plain white .cm-editor
+   background, entirely independent of this app's --am- or --base-prefixed
+   tokens — confirmed via computed styles: it stayed white even in the
+   app's dark theme, since nothing in this app's CSS had ever targeted it.
+   --am-surface matches the background inline code already gets (via
+   --baseBg, aliased in mdxeditor-adapter.css), so both code surfaces read
+   as the same "this is code" treatment. */
+.amarantha-app .mdxeditor .cm-editor {
+  background-color: var(--am-surface);
+  font-size: 1em;
+}
+
+.amarantha-app .mdxeditor .cm-gutters {
+  font-size: 0.85em;
+}
+
+/* Inline code spans. Specificity (class + tag) beats both MDXEditor's own
+   hashed ._code_* rule and Tailwind Typography's :where()-scoped rule
+   (:where() always carries zero specificity, despite how the selector
+   looks) without needing !important. */
+.amarantha-prose code {
+  font-size: 1em;
+}
+
+/* Tailwind Typography decorates every inline code span with `` via
+   ::before/::after content — removed for a flat look, matching how this
+   app treats every other "this is a distinct kind of text" surface
+   (frontmatter values, JSX prop fields) with color/family alone, not
+   punctuation. */
+.amarantha-prose :where(code)::before,
+.amarantha-prose :where(code)::after {
+  content: none;
+}

@@ -23,11 +23,12 @@ export default defineConfig({
       { find: "@amarantha/theme/index.css", replacement: path.resolve(__dirname, "../theme/src/index.css") },
       { find: "@amarantha/core", replacement: path.resolve(__dirname, "../core/src/index.ts") },
       { find: "@amarantha/editor", replacement: path.resolve(__dirname, "../editor/src/index.ts") },
+      { find: "@amarantha/mdx", replacement: path.resolve(__dirname, "../mdx/src/index.ts") },
       { find: "@amarantha/theme", replacement: path.resolve(__dirname, "../theme/src/index.ts") },
     ],
   },
   optimizeDeps: {
-    exclude: ["@amarantha/core", "@amarantha/editor", "@amarantha/theme"],
+    exclude: ["@amarantha/core", "@amarantha/editor", "@amarantha/mdx", "@amarantha/theme"],
   },
 
   // Deliberately a different port than packages/desktop's fixed 1420/1421
