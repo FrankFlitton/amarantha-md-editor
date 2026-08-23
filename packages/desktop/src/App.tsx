@@ -11,7 +11,7 @@ import type {
   ThemeFamily,
   ThemeModePreference,
 } from "@amarantha/core";
-import { DEFAULT_FONT_PREFERENCE, hasFrontmatterBlock } from "@amarantha/core";
+import { DEFAULT_FONT_PREFERENCE, hasFrontmatterBlock, reconcileMarkdown } from "@amarantha/core";
 import { themeId } from "@amarantha/theme";
 import { desktopHost, pickMarkdownFileToOpen, pickMarkdownFileToSaveAs, renameDocument } from "./lib/desktopHost";
 import { createImageHandlers } from "./lib/imageHost";
@@ -35,6 +35,13 @@ function App() {
   const [uri, setUri] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [savedText, setSavedText] = useState("");
+  // The actual bytes currently believed to be on disk — distinct from
+  // `savedText` (MDXEditor's own dirty-tracking baseline, its raw
+  // un-reconciled output). Used only as reconcileMarkdown's "original"
+  // argument at save time, so a save preserves whatever this session's own
+  // edits didn't actually touch (RFC Milestone 1) without disturbing the
+  // live editor's own dirty-flag bookkeeping.
+  const [diskText, setDiskText] = useState("");
   const [revision, setRevision] = useState("");
   const [conflict, setConflict] = useState<ExternalChange | null>(null);
   const [saveError, setSaveError] = useState<string | undefined>(undefined);
@@ -81,6 +88,7 @@ function App() {
     setUri(doc.uri);
     setText(doc.text);
     setSavedText(doc.text);
+    setDiskText(doc.text);
     setRevision(doc.revision);
     setConflict(null);
     setSaveError(undefined);
@@ -112,14 +120,21 @@ function App() {
       if (!targetUri) return;
       setUri(targetUri);
     }
+    // Reconciled against diskText (not MDXEditor's own text/savedText), so
+    // whatever this edit didn't actually touch keeps its exact original
+    // bytes — the RFC's Milestone 1 fix for MDXEditor's own round-trip
+    // normalizing markup (list bullets, emphasis markers, ...) it never
+    // touched either (see @amarantha/core's reconcileMarkdown).
+    const reconciled = reconcileMarkdown(diskText, text);
     const result = await desktopHost.writeDocument({
       uri: targetUri,
       baseRevision: revision,
-      text,
+      text: reconciled,
       reason: "save",
     });
     if (result.ok) {
       setSavedText(text);
+      setDiskText(reconciled);
       setRevision(result.revision);
       setSaveError(undefined);
     } else if (result.reason === "conflict" && result.current) {
@@ -127,7 +142,7 @@ function App() {
     } else {
       setSaveError(result.reason === "io" ? "Couldn't save: a filesystem error occurred." : "Couldn't save: permission denied.");
     }
-  }, [uri, text, revision, pendingFilename]);
+  }, [uri, text, revision, diskText, pendingFilename]);
 
   // Never applied silently: while local edits are pending, an external
   // modification only ever surfaces as a conflict choice; a clean document
@@ -142,6 +157,7 @@ function App() {
       } else {
         setText(event.text);
         setSavedText(event.text);
+        setDiskText(event.text);
         setRevision(event.revision);
       }
     });
@@ -168,20 +184,27 @@ function App() {
   const handleReloadConflict = useCallback((event: ExternalChange) => {
     setText(event.text);
     setSavedText(event.text);
+    setDiskText(event.text);
     setRevision(event.revision);
     setConflict(null);
   }, []);
 
   const handleOverwriteConflict = useCallback(
     async (event: ExternalChange) => {
+      // Reconciled against event.text (the disk's freshest known content,
+      // just discovered) rather than diskText (this session's now-stale
+      // baseline) — preserves as much of whatever's actually on disk as
+      // this local buffer didn't touch, rather than blindly clobbering it.
+      const reconciled = reconcileMarkdown(event.text, text);
       const result = await desktopHost.writeDocument({
         uri: event.uri,
         baseRevision: event.revision,
-        text,
+        text: reconciled,
         reason: "save",
       });
       if (result.ok) {
         setSavedText(text);
+        setDiskText(reconciled);
         setRevision(result.revision);
         setSaveError(undefined);
         setConflict(null);

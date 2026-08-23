@@ -17,6 +17,7 @@ export type {
 } from "./types";
 
 export { detectLineEnding, hashText, toLoadedDocument, hasFrontmatterBlock } from "./document";
+export { reconcileMarkdown } from "./reconcile";
 export { arrayBufferToBase64, isRemoteOrDataUrl, sanitizeAssetFileName } from "./media";
 export type { ThemeFamily, ThemeMode, ThemeId, ThemeModePreference, ProseSize } from "./theme";
 export type { FontSlot, FontSourceKind, FontPreference } from "./fonts";
