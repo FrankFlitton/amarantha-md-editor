@@ -225,3 +225,52 @@ body,
   background: var(--am-accent);
   color: var(--am-accent-text);
 }
+
+.conflict-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 35%);
+}
+
+.conflict-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  max-width: 360px;
+  border-radius: 10px;
+  background: var(--am-surface);
+  border: 1px solid var(--am-border);
+  color: var(--am-text);
+}
+
+.conflict-message {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--am-text);
+}
+
+.conflict-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.conflict-actions button {
+  border: none;
+  background: var(--am-border);
+  color: var(--am-text);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.conflict-actions button[data-testid="conflict-overwrite"] {
+  background: var(--am-accent);
+  color: var(--am-accent-text);
+}

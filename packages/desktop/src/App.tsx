@@ -3,6 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { AmaranthaEditor, type EditorMode } from "@amarantha/editor";
 import type {
   ComponentRegistry,
+  ExternalChange,
   FontPreference,
   FontSlot,
   FrontmatterFieldDefinition,
@@ -20,6 +21,7 @@ import { installNativeMenu, type NativeMenuActions, type NativeMenuHandle, type 
 import { openDocumentInNewWindow } from "./lib/windowManager";
 import { placeCursorNearClick } from "./lib/placeCursorNearClick";
 import { FontPromptModal, type FontPromptRequest } from "./FontPromptModal";
+import { ConflictModal } from "./ConflictModal";
 import { DocumentHeader } from "./DocumentHeader";
 import "./App.css";
 
@@ -33,6 +35,9 @@ function App() {
   const [uri, setUri] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [savedText, setSavedText] = useState("");
+  const [revision, setRevision] = useState("");
+  const [conflict, setConflict] = useState<ExternalChange | null>(null);
+  const [saveError, setSaveError] = useState<string | undefined>(undefined);
   const [mode, setMode] = useState<EditorMode>("rich");
   const [componentRegistry, setComponentRegistry] = useState<ComponentRegistry | undefined>(undefined);
   const [frontmatterFields, setFrontmatterFields] = useState<Record<string, FrontmatterFieldDefinition>>({});
@@ -58,6 +63,11 @@ function App() {
   const systemPrefersDark = useSystemPrefersDark();
 
   const dirty = text !== savedText;
+  // watchDocument's onChange fires from a subscription set up once per uri
+  // (see the effect below) — a ref keeps it reading the current dirty state
+  // instead of whatever it was when the subscription was created.
+  const dirtyRef = useRef(dirty);
+  dirtyRef.current = dirty;
   const hasFrontmatter = useMemo(() => hasFrontmatterBlock(text), [text]);
   const imageHandlers = useMemo(() => createImageHandlers(uri), [uri]);
   const displayName = uri ? filenameFromUri(uri) : pendingFilename;
@@ -71,6 +81,9 @@ function App() {
     setUri(doc.uri);
     setText(doc.text);
     setSavedText(doc.text);
+    setRevision(doc.revision);
+    setConflict(null);
+    setSaveError(undefined);
     setFrontmatterHidden(false);
     const { theme, componentRegistry, frontmatterFields } = await desktopHost.resolveWorkspaceConfig(doc.uri);
     setRepoThemeFamily(theme);
@@ -101,14 +114,39 @@ function App() {
     }
     const result = await desktopHost.writeDocument({
       uri: targetUri,
-      baseRevision: "",
+      baseRevision: revision,
       text,
       reason: "save",
     });
     if (result.ok) {
       setSavedText(text);
+      setRevision(result.revision);
+      setSaveError(undefined);
+    } else if (result.reason === "conflict" && result.current) {
+      setConflict({ uri: targetUri, revision: result.current.revision, text: result.current.text });
+    } else {
+      setSaveError(result.reason === "io" ? "Couldn't save: a filesystem error occurred." : "Couldn't save: permission denied.");
     }
-  }, [uri, text, pendingFilename]);
+  }, [uri, text, revision, pendingFilename]);
+
+  // Never applied silently: while local edits are pending, an external
+  // modification only ever surfaces as a conflict choice; a clean document
+  // reloads and reprojects automatically (RFC "External File Edits and
+  // Conflicts"). watchDocument's own self-write suppression (desktopHost.ts)
+  // keeps this from firing for the app's own saves.
+  useEffect(() => {
+    if (!uri) return;
+    const disposable = desktopHost.watchDocument(uri, (event) => {
+      if (dirtyRef.current) {
+        setConflict(event);
+      } else {
+        setText(event.text);
+        setSavedText(event.text);
+        setRevision(event.revision);
+      }
+    });
+    return () => disposable.dispose();
+  }, [uri]);
 
   const handleRename = useCallback(
     async (newName: string) => {
@@ -125,6 +163,38 @@ function App() {
       }
     },
     [uri]
+  );
+
+  const handleReloadConflict = useCallback((event: ExternalChange) => {
+    setText(event.text);
+    setSavedText(event.text);
+    setRevision(event.revision);
+    setConflict(null);
+  }, []);
+
+  const handleOverwriteConflict = useCallback(
+    async (event: ExternalChange) => {
+      const result = await desktopHost.writeDocument({
+        uri: event.uri,
+        baseRevision: event.revision,
+        text,
+        reason: "save",
+      });
+      if (result.ok) {
+        setSavedText(text);
+        setRevision(result.revision);
+        setSaveError(undefined);
+        setConflict(null);
+      } else if (result.reason === "conflict" && result.current) {
+        // Disk moved again between reading it for this dialog and choosing
+        // "Overwrite" — re-show the dialog with the newer content rather
+        // than silently failing.
+        setConflict({ uri: event.uri, revision: result.current.revision, text: result.current.text });
+      } else {
+        setSaveError(result.reason === "io" ? "Couldn't save: a filesystem error occurred." : "Couldn't save: permission denied.");
+      }
+    },
+    [text]
   );
 
   const handleEditorSurfaceMouseDown = useCallback(
@@ -274,7 +344,7 @@ function App() {
       <DocumentHeader
         name={displayName}
         dirty={dirty}
-        error={renameError}
+        error={renameError ?? saveError}
         onRename={(newName) => void handleRename(newName)}
         hasFrontmatter={hasFrontmatter}
         frontmatterHidden={frontmatterHidden}
@@ -320,6 +390,12 @@ function App() {
           setFont(fontPromptRequest.slot, pref);
           setFontPromptRequest(null);
         }}
+      />
+      <ConflictModal
+        conflict={conflict}
+        onReload={handleReloadConflict}
+        onOverwrite={(event) => void handleOverwriteConflict(event)}
+        onDismiss={() => setConflict(null)}
       />
     </div>
   );

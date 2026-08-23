@@ -29,10 +29,13 @@ export interface Disposable {
   dispose(): void;
 }
 
-// Stub for a future external-change/conflict-reconciliation feature (RFC Milestone 4).
+// External on-disk modification detected while a document is open (RFC Milestone 4).
+// `text` is included (not just the new revision) so a host doesn't need a second
+// read to offer "reload"/"compare" — the watcher already had the content in hand.
 export interface ExternalChange {
   uri: DocumentUri;
   revision: string;
+  text: string;
 }
 
 // Stub for a future desktop/VS Code workspace-trust model.
