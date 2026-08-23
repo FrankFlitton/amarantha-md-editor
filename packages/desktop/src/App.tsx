@@ -1,224 +1,83 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { AmaranthaEditor, type EditorMode } from "@amarantha/editor";
-import type {
-  ComponentRegistry,
-  ExternalChange,
-  FontPreference,
-  FontSlot,
-  FrontmatterFieldDefinition,
-  ProseSize,
-  ThemeFamily,
-  ThemeModePreference,
-} from "@amarantha/core";
-import { DEFAULT_FONT_PREFERENCE, hasFrontmatterBlock, reconcileMarkdown } from "@amarantha/core";
+import { AmaranthaEditor, createDocumentStore, selectDirty, selectDisplayName, selectHasFrontmatter } from "@amarantha/editor";
+import type { FontPreference } from "@amarantha/core";
 import { themeId } from "@amarantha/theme";
 import { desktopHost, pickMarkdownFileToOpen, pickMarkdownFileToSaveAs, renameDocument } from "./lib/desktopHost";
 import { createImageHandlers } from "./lib/imageHost";
-import { usePersistentState, useSystemPrefersDark } from "./lib/preferences";
+import { useSystemPrefersDark } from "./lib/preferences";
 import { useFontVariable } from "./lib/useFontVariable";
 import { installNativeMenu, type NativeMenuActions, type NativeMenuHandle, type NativeMenuState } from "./lib/nativeMenu";
 import { openDocumentInNewWindow } from "./lib/windowManager";
 import { placeCursorNearClick } from "./lib/placeCursorNearClick";
-import { FontPromptModal, type FontPromptRequest } from "./FontPromptModal";
+import { fontForSlot, useAppStore } from "./store";
+import { FontPromptModal } from "./FontPromptModal";
 import { ConflictModal } from "./ConflictModal";
 import { DocumentHeader } from "./DocumentHeader";
 import "./App.css";
 
-function filenameFromUri(uri: string | null): string {
-  if (!uri) return "Untitled";
-  const parts = uri.split(/[\\/]/);
-  return parts[parts.length - 1] || "Untitled";
-}
+/**
+ * One document-lifecycle store per window (this module is re-evaluated
+ * fresh for each Tauri window, matching today's one-store-of-local-state-
+ * per-window behavior). Built from @amarantha/editor's host-portable
+ * factory — a future VS Code host (RFC Milestone 5) supplies its own `deps`
+ * and reuses this same load/save/conflict/reconcile/watch logic unchanged.
+ */
+const documentStore = createDocumentStore({
+  host: desktopHost,
+  pickFileToOpen: pickMarkdownFileToOpen,
+  pickFileToSaveAs: pickMarkdownFileToSaveAs,
+  renameDocument,
+  openInNewWindow: openDocumentInNewWindow,
+});
 
 function App() {
-  const [uri, setUri] = useState<string | null>(null);
-  const [text, setText] = useState("");
-  const [savedText, setSavedText] = useState("");
-  // The actual bytes currently believed to be on disk — distinct from
-  // `savedText` (MDXEditor's own dirty-tracking baseline, its raw
-  // un-reconciled output). Used only as reconcileMarkdown's "original"
-  // argument at save time, so a save preserves whatever this session's own
-  // edits didn't actually touch (RFC Milestone 1) without disturbing the
-  // live editor's own dirty-flag bookkeeping.
-  const [diskText, setDiskText] = useState("");
-  const [revision, setRevision] = useState("");
-  const [conflict, setConflict] = useState<ExternalChange | null>(null);
-  const [saveError, setSaveError] = useState<string | undefined>(undefined);
-  const [mode, setMode] = useState<EditorMode>("rich");
-  const [componentRegistry, setComponentRegistry] = useState<ComponentRegistry | undefined>(undefined);
-  const [frontmatterFields, setFrontmatterFields] = useState<Record<string, FrontmatterFieldDefinition>>({});
-  const [frontmatterHidden, setFrontmatterHidden] = useState(false);
-  const [repoThemeFamily, setRepoThemeFamily] = useState<ThemeFamily | undefined>(undefined);
+  const {
+    uri,
+    text,
+    savedText,
+    frontmatterHidden,
+    pendingFilename,
+    renameError,
+    saveError,
+    conflict,
+    componentRegistry,
+    frontmatterFields,
+    repoThemeFamily,
+    setText,
+    toggleFrontmatterHidden,
+    handleRename,
+    handleReloadConflict,
+    handleOverwriteConflict,
+    dismissConflict,
+  } = documentStore();
 
-  const [modePreference, setModePreference] = usePersistentState<ThemeModePreference>("amarantha:mode", "system");
-  const [familyPreference, setFamilyPreference] = usePersistentState<ThemeFamily | undefined>(
-    "amarantha:family",
-    undefined
-  );
-  const [sizePreference, setSizePreference] = usePersistentState<ProseSize>("amarantha:size", "base");
-  const [sansFont, setSansFont] = usePersistentState<FontPreference>("amarantha:font-sans", DEFAULT_FONT_PREFERENCE);
-  const [headingFont, setHeadingFont] = usePersistentState<FontPreference>(
-    "amarantha:font-heading",
-    DEFAULT_FONT_PREFERENCE
-  );
-  const [monoFont, setMonoFont] = usePersistentState<FontPreference>("amarantha:font-mono", DEFAULT_FONT_PREFERENCE);
-  const [fontPromptRequest, setFontPromptRequest] = useState<FontPromptRequest | null>(null);
-  const [pendingFilename, setPendingFilename] = useState("Untitled.md");
-  const [renameError, setRenameError] = useState<string | undefined>(undefined);
+  // Preferences (persisted) and transient UI (mode, font-prompt) live in the
+  // desktop-only app store (./store.ts) — not portable to a future VS Code
+  // host, unlike the document-lifecycle state above (RFC Milestone 5 seam).
+  const {
+    modePreference,
+    familyPreference,
+    sizePreference,
+    sansFont,
+    headingFont,
+    monoFont,
+    mode,
+    fontPromptRequest,
+    setFont,
+    closeFontPrompt,
+  } = useAppStore();
 
   const systemPrefersDark = useSystemPrefersDark();
 
-  const dirty = text !== savedText;
-  // watchDocument's onChange fires from a subscription set up once per uri
-  // (see the effect below) — a ref keeps it reading the current dirty state
-  // instead of whatever it was when the subscription was created.
-  const dirtyRef = useRef(dirty);
-  dirtyRef.current = dirty;
-  const hasFrontmatter = useMemo(() => hasFrontmatterBlock(text), [text]);
+  const dirty = selectDirty({ text, savedText });
+  const hasFrontmatter = useMemo(() => selectHasFrontmatter({ text }), [text]);
   const imageHandlers = useMemo(() => createImageHandlers(uri), [uri]);
-  const displayName = uri ? filenameFromUri(uri) : pendingFilename;
+  const displayName = selectDisplayName({ uri, pendingFilename });
 
   const effectiveFamily = familyPreference ?? repoThemeFamily ?? "ember";
   const effectiveMode = modePreference === "system" ? (systemPrefersDark ? "dark" : "light") : modePreference;
   const effectiveThemeId = themeId(effectiveFamily, effectiveMode);
-
-  const loadDocument = useCallback(async (targetUri: string) => {
-    const doc = await desktopHost.readDocument(targetUri);
-    setUri(doc.uri);
-    setText(doc.text);
-    setSavedText(doc.text);
-    setDiskText(doc.text);
-    setRevision(doc.revision);
-    setConflict(null);
-    setSaveError(undefined);
-    setFrontmatterHidden(false);
-    const { theme, componentRegistry, frontmatterFields } = await desktopHost.resolveWorkspaceConfig(doc.uri);
-    setRepoThemeFamily(theme);
-    setComponentRegistry(componentRegistry);
-    setFrontmatterFields(frontmatterFields);
-  }, []);
-
-  const handleOpen = useCallback(async () => {
-    const selected = await pickMarkdownFileToOpen();
-    if (!selected) return;
-    // A window with a document already open (saved or not) or an unsaved
-    // untitled draft keeps its content — the new file opens in its own
-    // window instead of clobbering it. Only a blank, untouched window
-    // reuses itself.
-    if (uri !== null || dirty) {
-      await openDocumentInNewWindow(selected);
-      return;
-    }
-    await loadDocument(selected);
-  }, [uri, dirty, loadDocument]);
-
-  const handleSave = useCallback(async () => {
-    let targetUri = uri;
-    if (!targetUri) {
-      targetUri = (await pickMarkdownFileToSaveAs(pendingFilename)) ?? null;
-      if (!targetUri) return;
-      setUri(targetUri);
-    }
-    // Reconciled against diskText (not MDXEditor's own text/savedText), so
-    // whatever this edit didn't actually touch keeps its exact original
-    // bytes — the RFC's Milestone 1 fix for MDXEditor's own round-trip
-    // normalizing markup (list bullets, emphasis markers, ...) it never
-    // touched either (see @amarantha/core's reconcileMarkdown).
-    const reconciled = reconcileMarkdown(diskText, text);
-    const result = await desktopHost.writeDocument({
-      uri: targetUri,
-      baseRevision: revision,
-      text: reconciled,
-      reason: "save",
-    });
-    if (result.ok) {
-      setSavedText(text);
-      setDiskText(reconciled);
-      setRevision(result.revision);
-      setSaveError(undefined);
-    } else if (result.reason === "conflict" && result.current) {
-      setConflict({ uri: targetUri, revision: result.current.revision, text: result.current.text });
-    } else {
-      setSaveError(result.reason === "io" ? "Couldn't save: a filesystem error occurred." : "Couldn't save: permission denied.");
-    }
-  }, [uri, text, revision, diskText, pendingFilename]);
-
-  // Never applied silently: while local edits are pending, an external
-  // modification only ever surfaces as a conflict choice; a clean document
-  // reloads and reprojects automatically (RFC "External File Edits and
-  // Conflicts"). watchDocument's own self-write suppression (desktopHost.ts)
-  // keeps this from firing for the app's own saves.
-  useEffect(() => {
-    if (!uri) return;
-    const disposable = desktopHost.watchDocument(uri, (event) => {
-      if (dirtyRef.current) {
-        setConflict(event);
-      } else {
-        setText(event.text);
-        setSavedText(event.text);
-        setDiskText(event.text);
-        setRevision(event.revision);
-      }
-    });
-    return () => disposable.dispose();
-  }, [uri]);
-
-  const handleRename = useCallback(
-    async (newName: string) => {
-      if (!uri) {
-        setPendingFilename(newName);
-        return;
-      }
-      try {
-        const newUri = await renameDocument(uri, newName);
-        setUri(newUri);
-        setRenameError(undefined);
-      } catch (error) {
-        setRenameError(error instanceof Error ? error.message : "Rename failed");
-      }
-    },
-    [uri]
-  );
-
-  const handleReloadConflict = useCallback((event: ExternalChange) => {
-    setText(event.text);
-    setSavedText(event.text);
-    setDiskText(event.text);
-    setRevision(event.revision);
-    setConflict(null);
-  }, []);
-
-  const handleOverwriteConflict = useCallback(
-    async (event: ExternalChange) => {
-      // Reconciled against event.text (the disk's freshest known content,
-      // just discovered) rather than diskText (this session's now-stale
-      // baseline) — preserves as much of whatever's actually on disk as
-      // this local buffer didn't touch, rather than blindly clobbering it.
-      const reconciled = reconcileMarkdown(event.text, text);
-      const result = await desktopHost.writeDocument({
-        uri: event.uri,
-        baseRevision: event.revision,
-        text: reconciled,
-        reason: "save",
-      });
-      if (result.ok) {
-        setSavedText(text);
-        setDiskText(reconciled);
-        setRevision(result.revision);
-        setSaveError(undefined);
-        setConflict(null);
-      } else if (result.reason === "conflict" && result.current) {
-        // Disk moved again between reading it for this dialog and choosing
-        // "Overwrite" — re-show the dialog with the newer content rather
-        // than silently failing.
-        setConflict({ uri: event.uri, revision: result.current.revision, text: result.current.text });
-      } else {
-        setSaveError(result.reason === "io" ? "Couldn't save: a filesystem error occurred." : "Couldn't save: permission denied.");
-      }
-    },
-    [text]
-  );
 
   const handleEditorSurfaceMouseDown = useCallback(
     (event: React.MouseEvent<HTMLElement>) => {
@@ -236,20 +95,6 @@ function App() {
     [mode]
   );
 
-  const setFont = useCallback(
-    (slot: FontSlot, pref: FontPreference) => {
-      if (slot === "sans") setSansFont(pref);
-      else if (slot === "heading") setHeadingFont(pref);
-      else setMonoFont(pref);
-    },
-    [setSansFont, setHeadingFont, setMonoFont]
-  );
-
-  const fontForSlot = useCallback(
-    (slot: FontSlot): FontPreference => (slot === "sans" ? sansFont : slot === "heading" ? headingFont : monoFont),
-    [sansFont, headingFont, monoFont]
-  );
-
   useEffect(() => {
     // Windows opened via openDocumentInNewWindow carry the file to load in
     // an `open` query param; loadDocument resolves workspace config for
@@ -257,15 +102,11 @@ function App() {
     // avoid a race that could overwrite it with the wrong theme/registry.
     const openUri = new URLSearchParams(window.location.search).get("open");
     if (openUri) {
-      void loadDocument(openUri);
+      void documentStore.getState().loadDocument(openUri);
       return;
     }
-    void desktopHost.resolveWorkspaceConfig("").then(({ theme, componentRegistry, frontmatterFields }) => {
-      setRepoThemeFamily(theme);
-      setComponentRegistry(componentRegistry);
-      setFrontmatterFields(frontmatterFields);
-    });
-  }, [loadDocument]);
+    void documentStore.getState().resolveWorkspaceConfig("");
+  }, []);
 
   useEffect(() => {
     // A missing core:window:allow-set-title capability makes this reject
@@ -295,68 +136,58 @@ function App() {
   const headingFontError = useFontVariable(headingFont, "heading", "--am-font-heading");
   const monoFontError = useFontVariable(monoFont, "mono", "--am-font-mono");
 
-  // The native menu (installed once) and its action callbacks must never see
-  // stale state: actionsRef/stateRef are refreshed every render and the menu
-  // only ever calls through them, rather than closing over this render's values.
-  const actionsRef = useRef<NativeMenuActions>(null as unknown as NativeMenuActions);
-  const stateRef = useRef<NativeMenuState>(null as unknown as NativeMenuState);
+  // menuHandleRef is the one ref still needed here — an imperative handle to
+  // the installed native menu object, not a stale-closure workaround. Zustand
+  // actions never change identity across renders and getState() always
+  // returns current data, so the menu's actions/state read straight from the
+  // two stores below with no ref-mirroring needed at all (contrast with the
+  // pre-store version of this file, which needed actionsRef/stateRef refreshed
+  // every render purely to keep this once-installed menu from calling stale
+  // handlers).
   const menuHandleRef = useRef<NativeMenuHandle | undefined>(undefined);
 
-  actionsRef.current = {
-    onOpen: () => void handleOpen(),
-    onSave: () => void handleSave(),
-    onSetEditorMode: setMode,
-    onSetFamily: setFamilyPreference,
-    onSetModePreference: setModePreference,
-    onSetSize: setSizePreference,
-    onSetFont: setFont,
-    onPromptCustomFont: (slot) => {
-      const current = fontForSlot(slot);
-      setFontPromptRequest({
-        slot,
-        kind: "fontsource",
-        initialValue: current.kind === "fontsource" ? (current.fontsourceId ?? "") : "",
-      });
-    },
-    onPromptSystemFont: (slot) => {
-      const current = fontForSlot(slot);
-      setFontPromptRequest({
-        slot,
-        kind: "system",
-        initialValue: current.kind === "system" ? (current.systemFamily ?? "") : "",
-      });
-    },
-  };
-  stateRef.current = {
-    editorMode: mode,
-    familyPreference,
-    modePreference,
-    sizePreference,
-    sansFont,
-    headingFont,
-    monoFont,
-  };
+  function currentMenuState(): NativeMenuState {
+    const app = useAppStore.getState();
+    return {
+      editorMode: app.mode,
+      familyPreference: app.familyPreference,
+      modePreference: app.modePreference,
+      sizePreference: app.sizePreference,
+      sansFont: app.sansFont,
+      headingFont: app.headingFont,
+      monoFont: app.monoFont,
+    };
+  }
 
   useEffect(() => {
-    const stableActions: NativeMenuActions = {
-      onOpen: () => actionsRef.current.onOpen(),
-      onSave: () => actionsRef.current.onSave(),
-      onSetEditorMode: (m) => actionsRef.current.onSetEditorMode(m),
-      onSetFamily: (f) => actionsRef.current.onSetFamily(f),
-      onSetModePreference: (m) => actionsRef.current.onSetModePreference(m),
-      onSetSize: (s) => actionsRef.current.onSetSize(s),
-      onSetFont: (slot, pref) => actionsRef.current.onSetFont(slot, pref),
-      onPromptCustomFont: (slot) => actionsRef.current.onPromptCustomFont(slot),
-      onPromptSystemFont: (slot) => actionsRef.current.onPromptSystemFont(slot),
+    const actions: NativeMenuActions = {
+      onOpen: () => void documentStore.getState().handleOpen(),
+      onSave: () => void documentStore.getState().handleSave(),
+      onSetEditorMode: (m) => useAppStore.getState().setMode(m),
+      onSetFamily: (f) => useAppStore.getState().setFamilyPreference(f),
+      onSetModePreference: (m) => useAppStore.getState().setModePreference(m),
+      onSetSize: (s) => useAppStore.getState().setSizePreference(s),
+      onSetFont: (slot, pref) => useAppStore.getState().setFont(slot, pref),
+      onPromptCustomFont: (slot) => {
+        const app = useAppStore.getState();
+        const current = fontForSlot(app, slot);
+        app.requestFontPrompt(slot, "fontsource", current.kind === "fontsource" ? (current.fontsourceId ?? "") : "");
+      },
+      onPromptSystemFont: (slot) => {
+        const app = useAppStore.getState();
+        const current = fontForSlot(app, slot);
+        app.requestFontPrompt(slot, "system", current.kind === "system" ? (current.systemFamily ?? "") : "");
+      },
     };
-    void installNativeMenu(stableActions).then((handle) => {
+    void installNativeMenu(actions).then((handle) => {
       menuHandleRef.current = handle;
-      void handle.sync(stateRef.current);
+      void handle.sync(currentMenuState());
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    void menuHandleRef.current?.sync(stateRef.current);
+    void menuHandleRef.current?.sync(currentMenuState());
   }, [mode, familyPreference, modePreference, sizePreference, sansFont, headingFont, monoFont]);
 
   return (
@@ -371,7 +202,7 @@ function App() {
         onRename={(newName) => void handleRename(newName)}
         hasFrontmatter={hasFrontmatter}
         frontmatterHidden={frontmatterHidden}
-        onToggleFrontmatterVisibility={() => setFrontmatterHidden((h) => !h)}
+        onToggleFrontmatterVisibility={toggleFrontmatterHidden}
       />
       <main className="editor-surface" onMouseDown={handleEditorSurfaceMouseDown}>
         {/* MDXEditor's `markdown` prop (and its plugin list, including jsxPlugin's
@@ -403,7 +234,7 @@ function App() {
       )}
       <FontPromptModal
         request={fontPromptRequest}
-        onCancel={() => setFontPromptRequest(null)}
+        onCancel={closeFontPrompt}
         onSubmit={(value) => {
           if (!fontPromptRequest) return;
           const pref: FontPreference =
@@ -411,14 +242,14 @@ function App() {
               ? { kind: "fontsource", fontsourceId: value }
               : { kind: "system", systemFamily: value };
           setFont(fontPromptRequest.slot, pref);
-          setFontPromptRequest(null);
+          closeFontPrompt();
         }}
       />
       <ConflictModal
         conflict={conflict}
         onReload={handleReloadConflict}
         onOverwrite={(event) => void handleOverwriteConflict(event)}
-        onDismiss={() => setConflict(null)}
+        onDismiss={dismissConflict}
       />
     </div>
   );

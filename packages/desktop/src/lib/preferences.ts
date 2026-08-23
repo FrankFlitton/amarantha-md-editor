@@ -1,6 +1,6 @@
-import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
-function readPreference<T>(key: string, fallback: T): T {
+export function readPreference<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
     return raw ? (JSON.parse(raw) as T) : fallback;
@@ -9,21 +9,12 @@ function readPreference<T>(key: string, fallback: T): T {
   }
 }
 
-function writePreference<T>(key: string, value: T): void {
+export function writePreference<T>(key: string, value: T): void {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
     // Storage disabled (e.g. private browsing) — preference just won't persist.
   }
-}
-
-/** A global, app-wide preference persisted to localStorage — not per-document. */
-export function usePersistentState<T>(key: string, initial: T): [T, Dispatch<SetStateAction<T>>] {
-  const [state, setState] = useState<T>(() => readPreference(key, initial));
-  useEffect(() => {
-    writePreference(key, state);
-  }, [key, state]);
-  return [state, setState];
 }
 
 /** Live OS light/dark preference, for the "system" mode option. */

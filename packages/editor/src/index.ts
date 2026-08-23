@@ -7,3 +7,5 @@ export type { SourceViewProps } from "./SourceView";
 export { createJsxComponentDescriptors } from "./jsx/descriptors";
 export { AmaranthaJsxEditor } from "./jsx/AmaranthaJsxEditor";
 export { UnknownJsxEditor } from "./jsx/UnknownJsxEditor";
+export { createDocumentStore, selectDirty, selectHasFrontmatter, selectDisplayName } from "./store/documentStore";
+export type { DocumentStoreDeps, DocumentStoreState, DocumentStore, WorkspaceConfig } from "./store/documentStore";
