@@ -22,3 +22,16 @@ html[data-theme="vscode"] {
   --am-accent-text: var(--vscode-button-foreground);
   --am-selection: var(--vscode-editor-selectionBackground);
 }
+
+/*
+ * Source mode's font follows VS Code's own editor.fontSize/fontFamily
+ * settings, not our own size picker (@amarantha/editor's SourceView.css,
+ * which still governs desktop/web — both variables default there). This
+ * rule's extra specificity (html[data-theme] + .source-view, 3 selectors)
+ * beats SourceView.css's plain .source-view-size-* class (1 selector) on
+ * the same element, so it wins regardless of source order — no !important.
+ */
+html[data-theme="vscode"] .source-view {
+  --am-source-font-size: var(--vscode-editor-font-size, 13px);
+  --am-source-font-family: var(--vscode-editor-font-family, var(--am-font-mono));
+}

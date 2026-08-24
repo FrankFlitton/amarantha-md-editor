@@ -4,6 +4,10 @@ import { vscodeFsAdapter } from "./vscodeFsAdapter";
 export interface ResolvedWorkspaceConfig {
   componentDefinitions: ComponentDefinition[];
   frontmatterFields: Record<string, FrontmatterFieldDefinition>;
+  /** A repo-declared fallback base directory for local image resolution
+   *  (amarantha.config.json's `imagePrefix`) — see imageHost.ts. */
+  imagePrefix?: string;
+  imagePrefixDir?: string;
 }
 
 /**
@@ -17,6 +21,9 @@ export interface ResolvedWorkspaceConfig {
  * isn't serializable across the extension/webview postMessage boundary.
  */
 export async function resolveWorkspaceConfig(uri: string): Promise<ResolvedWorkspaceConfig> {
-  const { componentDefinitions, frontmatterFields } = await discoverWorkspaceConfig(uri, vscodeFsAdapter);
-  return { componentDefinitions, frontmatterFields };
+  const { componentDefinitions, frontmatterFields, imagePrefix, imagePrefixDir } = await discoverWorkspaceConfig(
+    uri,
+    vscodeFsAdapter
+  );
+  return { componentDefinitions, frontmatterFields, imagePrefix, imagePrefixDir };
 }

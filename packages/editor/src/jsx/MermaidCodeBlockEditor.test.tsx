@@ -36,8 +36,8 @@ describe("codeBlockEditorDescriptors: fenced ```mermaid blocks", () => {
     render(<AmaranthaEditor value={markdown} onChange={() => {}} mode="rich" editorRef={editorRef} />);
 
     fireEvent.click(screen.getByTestId("mermaid-block-toggle-code"));
-    const source = screen.getByTestId("mermaid-block-source") as HTMLTextAreaElement;
-    expect(source.value).toBe("graph TD\n  A --> B");
+    const source = screen.getByTestId("mermaid-block-source");
+    expect(source.textContent).toBe("graph TD\n  A --> B");
     expect(screen.queryByTestId("mermaid-preview")).toBeNull();
   });
 });

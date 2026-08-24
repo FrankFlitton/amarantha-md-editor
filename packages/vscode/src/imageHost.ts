@@ -25,15 +25,56 @@ export async function saveUploadedImage(docFsPath: string, name: string, dataBas
   return `assets/${fileName}`;
 }
 
+export interface ImagePrefixOptions {
+  /** amarantha.config.json's `imagePrefix`, if any (see workspaceConfig.ts). */
+  imagePrefix?: string;
+  imagePrefixDir?: string;
+}
+
+async function pathExists(candidate: string): Promise<boolean> {
+  return fs.access(candidate).then(
+    () => true,
+    () => false
+  );
+}
+
 /**
  * Resolves a markdown image src (relative/absolute local path, or a
  * remote/data URL passed through untouched) into a URI the webview is
  * actually allowed to load, via asWebviewUri — the VS Code equivalent of
  * desktop's convertFileSrc.
+ *
+ * Tries more than one candidate location, in order, and uses the first that
+ * actually exists on disk: the usual document-relative resolution first,
+ * then — if the repo declares `imagePrefix` — that prefix plus the src with
+ * any single leading slash stripped. Covers Jamstack-style repos where
+ * markdown content and public assets live in separate trees (e.g. a
+ * `/img/foo.png` src in markdown under `content/`, physically at
+ * `<repo>/src/public/img/foo.png` — `imagePrefix: "src/public"` finds it).
+ * Falls back to the plain document-relative candidate if nothing resolves,
+ * so this is never worse than the single-candidate behavior it replaces.
  */
-export function resolveImagePreviewSrc(docFsPath: string, src: string, webview: vscode.Webview): string {
+export async function resolveImagePreviewSrc(
+  docFsPath: string,
+  src: string,
+  webview: vscode.Webview,
+  options: ImagePrefixOptions = {}
+): Promise<string> {
   if (isRemoteOrDataUrl(src)) return src;
-  const dir = path.dirname(docFsPath);
-  const absolute = path.resolve(dir, src);
-  return webview.asWebviewUri(vscode.Uri.file(absolute)).toString();
+
+  const docRelative = path.resolve(path.dirname(docFsPath), src);
+  const candidates = [docRelative];
+  if (options.imagePrefix && options.imagePrefixDir) {
+    const stripped = src.replace(/^[/\\]+/, "");
+    candidates.push(path.resolve(options.imagePrefixDir, options.imagePrefix, stripped));
+  }
+
+  let resolved = docRelative;
+  for (const candidate of candidates) {
+    if (await pathExists(candidate)) {
+      resolved = candidate;
+      break;
+    }
+  }
+  return webview.asWebviewUri(vscode.Uri.file(resolved)).toString();
 }

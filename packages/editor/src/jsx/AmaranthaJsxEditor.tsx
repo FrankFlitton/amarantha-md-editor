@@ -44,11 +44,7 @@ export function AmaranthaJsxEditor({ mdastNode, definition }: AmaranthaJsxEditor
   }
 
   return (
-    <div
-      className={`amarantha-jsx-editor${isMermaid ? " amarantha-jsx-editor-flat" : ""}`}
-      data-testid={`jsx-editor-${definition.name}`}
-      contentEditable={false}
-    >
+    <div className="amarantha-jsx-editor" data-testid={`jsx-editor-${definition.name}`} contentEditable={false}>
       <div className="amarantha-jsx-editor-title">{definition.displayName ?? definition.name}</div>
       {isMermaid && (
         <button

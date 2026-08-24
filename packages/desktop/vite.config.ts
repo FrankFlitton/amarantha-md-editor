@@ -22,11 +22,12 @@ export default defineConfig(async () => ({
       { find: "@amarantha/core", replacement: path.resolve(__dirname, "../core/src/index.ts") },
       { find: "@amarantha/editor", replacement: path.resolve(__dirname, "../editor/src/index.ts") },
       { find: "@amarantha/mdx", replacement: path.resolve(__dirname, "../mdx/src/index.ts") },
+      { find: "@amarantha/source", replacement: path.resolve(__dirname, "../source/src/index.ts") },
       { find: "@amarantha/theme", replacement: path.resolve(__dirname, "../theme/src/index.ts") },
     ],
   },
   optimizeDeps: {
-    exclude: ["@amarantha/core", "@amarantha/editor", "@amarantha/mdx", "@amarantha/theme"],
+    exclude: ["@amarantha/core", "@amarantha/editor", "@amarantha/mdx", "@amarantha/source", "@amarantha/theme"],
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

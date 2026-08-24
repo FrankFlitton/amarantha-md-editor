@@ -11,6 +11,8 @@ export interface InlineEditableTextProps {
   autoFocus?: boolean;
   /** Select the whole field on focus (e.g. renaming a file) rather than leaving the caret where clicked (the default — better for editing a word within longer text). */
   selectAllOnFocus?: boolean;
+  /** Enter inserts a line break instead of committing/blurring (JSX expression props, anything textarea-shaped) — the caller must also set `white-space: pre-wrap` via `className` or newlines won't visually render. */
+  multiline?: boolean;
   /** Fires only when the committed text differs from `value`. */
   onCommit: (next: string) => void;
   /** Always fires on blur, after onCommit (if any) — for a caller that needs to know editing ended regardless of whether anything changed. */
@@ -40,6 +42,7 @@ export function InlineEditableText({
   testId,
   autoFocus,
   selectAllOnFocus,
+  multiline,
   onCommit,
   onBlur,
 }: InlineEditableTextProps) {
@@ -66,6 +69,22 @@ export function InlineEditableText({
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key === "Enter") {
       event.preventDefault();
+      if (multiline) {
+        // A bare Enter on a contentEditable div normally splits it into
+        // separate <div>s per line (browser default paragraph behavior),
+        // which .textContent then reads back with no separator between
+        // lines at all — silently losing every line break. Inserting a
+        // literal "\n" character instead (same execCommand path the paste
+        // handler below already uses) keeps this one text node with real
+        // newlines in it, which `white-space: pre-wrap` then renders
+        // correctly and .textContent reads back correctly too.
+        try {
+          document.execCommand("insertText", false, "\n");
+        } catch {
+          // execCommand is unavailable in some test environments; a no-op there.
+        }
+        return;
+      }
       event.currentTarget.blur();
     } else if (event.key === "Escape") {
       event.preventDefault();
@@ -83,6 +102,7 @@ export function InlineEditableText({
       title={title}
       role="textbox"
       aria-label={ariaLabel ?? placeholder}
+      aria-multiline={multiline}
       contentEditable
       suppressContentEditableWarning
       onFocus={(event) => {

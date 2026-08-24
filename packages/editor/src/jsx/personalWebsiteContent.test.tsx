@@ -20,7 +20,7 @@ describe("personalWebsiteRegistry against real content patterns", () => {
         componentRegistry={personalWebsiteRegistry}
       />
     );
-    expect((screen.getByTestId("jsx-prop-id") as HTMLInputElement).value).toBe("sKXIPwYw2LE");
+    expect(screen.getByTestId("jsx-prop-id").textContent).toBe("sKXIPwYw2LE");
   });
 
   it("renders Img with framed + tall bare-boolean attributes", () => {
@@ -31,7 +31,7 @@ describe("personalWebsiteRegistry against real content patterns", () => {
     );
     expect((screen.getByTestId("jsx-prop-framed") as HTMLInputElement).checked).toBe(true);
     expect((screen.getByTestId("jsx-prop-tall") as HTMLInputElement).checked).toBe(true);
-    expect((screen.getByTestId("jsx-prop-alt") as HTMLInputElement).value).toBe("Results step on mobile");
+    expect(screen.getByTestId("jsx-prop-alt").textContent).toBe("Results step on mobile");
   });
 
   it("renders Gist and NPM with their required string props", () => {
@@ -43,9 +43,7 @@ describe("personalWebsiteRegistry against real content patterns", () => {
         componentRegistry={personalWebsiteRegistry}
       />
     );
-    expect((screen.getByTestId("jsx-prop-id") as HTMLInputElement).value).toBe(
-      "354d225c11711b3eae9e90e733070b5b"
-    );
+    expect(screen.getByTestId("jsx-prop-id").textContent).toBe("354d225c11711b3eae9e90e733070b5b");
   });
 
   it("Mermaid defaults to viewing the rendered diagram, with a toggle to its chart source", () => {
@@ -60,9 +58,9 @@ describe("personalWebsiteRegistry against real content patterns", () => {
 
     fireEvent.click(screen.getByTestId("mermaid-toggle-code"));
 
-    const chartField = screen.getByTestId("jsx-prop-chart") as HTMLTextAreaElement;
-    expect(chartField.value).toContain("graph TD");
-    expect(chartField.value).toContain("A --> B");
+    const chartField = screen.getByTestId("jsx-prop-chart");
+    expect(chartField.textContent).toContain("graph TD");
+    expect(chartField.textContent).toContain("A --> B");
     expect(screen.queryByTestId("mermaid-preview")).toBeNull();
   });
 
@@ -80,7 +78,7 @@ describe("personalWebsiteRegistry against real content patterns", () => {
       <AmaranthaEditor value={markdown} onChange={() => {}} mode="rich" componentRegistry={personalWebsiteRegistry} />
     );
     expect(screen.getByTestId("jsx-editor-UserJourneyMap")).toBeTruthy();
-    const phasesField = screen.getByTestId("jsx-prop-phases") as HTMLTextAreaElement;
-    expect(phasesField.value).toContain("Playing");
+    const phasesField = screen.getByTestId("jsx-prop-phases");
+    expect(phasesField.textContent).toContain("Playing");
   });
 });

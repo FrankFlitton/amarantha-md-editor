@@ -89,7 +89,7 @@ export function AmaranthaEditor({
   frontmatterHidden,
 }: AmaranthaEditorProps) {
   if (mode === "source") {
-    return <SourceView value={value} onChange={onChange} />;
+    return <SourceView value={value} onChange={onChange} proseSize={proseSize} />;
   }
 
   const jsxComponentDescriptors = componentRegistry ? createJsxComponentDescriptors(componentRegistry) : undefined;

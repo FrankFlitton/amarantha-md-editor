@@ -35,15 +35,24 @@ export class AmaranthaEditorProvider implements vscode.CustomTextEditorProvider 
     _token: vscode.CancellationToken
   ): Promise<void> {
     const docDir = vscode.Uri.file(path.dirname(document.uri.fsPath));
+    // Resolved once up front (not lazily on "ready"): localResourceRoots
+    // below needs imagePrefixDir before the webview is even created, since
+    // a repo's imagePrefix commonly points *outside* the document's own
+    // directory (e.g. content/ vs. src/public/ in a Jamstack repo) — without
+    // widening the resource roots, asWebviewUri would produce a URI VS
+    // Code's webview resource guard then silently refuses to load.
+    const workspaceConfig = await resolveWorkspaceConfig(document.uri.fsPath);
 
-    webviewPanel.webview.options = {
-      enableScripts: true,
-      localResourceRoots: [
-        vscode.Uri.joinPath(this.context.extensionUri, "dist", "webview"),
-        docDir,
-        this.context.globalStorageUri,
-      ],
-    };
+    const localResourceRoots = [
+      vscode.Uri.joinPath(this.context.extensionUri, "dist", "webview"),
+      docDir,
+      this.context.globalStorageUri,
+    ];
+    if (workspaceConfig.imagePrefixDir) {
+      localResourceRoots.push(vscode.Uri.file(workspaceConfig.imagePrefixDir));
+    }
+
+    webviewPanel.webview.options = { enableScripts: true, localResourceRoots };
     webviewPanel.webview.html = getHtmlForWebview(webviewPanel.webview, this.context.extensionUri);
 
     // Tracks the text this provider itself last wrote via applyEdit, so the
@@ -56,14 +65,13 @@ export class AmaranthaEditorProvider implements vscode.CustomTextEditorProvider 
 
     const post = (message: HostMessage) => void webviewPanel.webview.postMessage(message);
 
-    const sendInit = async () => {
-      const { componentDefinitions, frontmatterFields } = await resolveWorkspaceConfig(document.uri.fsPath);
+    const sendInit = () => {
       post({
         type: "init",
         uri: document.uri.toString(),
         text: document.getText(),
-        componentDefinitions,
-        frontmatterFields,
+        componentDefinitions: workspaceConfig.componentDefinitions,
+        frontmatterFields: workspaceConfig.frontmatterFields,
       });
     };
 
@@ -78,7 +86,7 @@ export class AmaranthaEditorProvider implements vscode.CustomTextEditorProvider 
     const messageSub = webviewPanel.webview.onDidReceiveMessage(async (message: WebviewMessage) => {
       switch (message.type) {
         case "ready":
-          await sendInit();
+          sendInit();
           return;
 
         case "edit": {
@@ -107,7 +115,10 @@ export class AmaranthaEditorProvider implements vscode.CustomTextEditorProvider 
 
         case "requestImagePreview": {
           try {
-            const src = resolveImagePreviewSrc(document.uri.fsPath, message.src, webviewPanel.webview);
+            const src = await resolveImagePreviewSrc(document.uri.fsPath, message.src, webviewPanel.webview, {
+              imagePrefix: workspaceConfig.imagePrefix,
+              imagePrefixDir: workspaceConfig.imagePrefixDir,
+            });
             post({ type: "imagePreviewResolved", requestId: message.requestId, src });
           } catch (error) {
             post({ type: "requestFailed", requestId: message.requestId, error: errorMessage(error) });

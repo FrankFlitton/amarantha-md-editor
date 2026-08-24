@@ -20,14 +20,14 @@ export async function discoverWorkspaceConfig(docUri: DocumentUri, fs: FsAdapter
     return { theme: undefined, componentDefinitions: [], frontmatterFields: {} };
   }
 
-  const found: AmaranthaConfig[] = [];
+  const found: { dir: string; config: AmaranthaConfig }[] = [];
   let dir = await fs.dirname(docUri);
 
   for (let i = 0; i < MAX_ANCESTORS; i++) {
     const configPath = await fs.join(dir, CONFIG_FILE_NAME);
     if (await fs.exists(configPath)) {
       const config = JSON.parse(await fs.readTextFile(configPath)) as AmaranthaConfig;
-      found.push(config);
+      found.push({ dir, config });
       if (config.root) break;
     }
 
@@ -41,13 +41,19 @@ export async function discoverWorkspaceConfig(docUri: DocumentUri, fs: FsAdapter
   let theme: WorkspaceConfig["theme"];
   let componentDefinitions: ComponentDefinitionsAccumulator = [];
   let frontmatterFields: WorkspaceConfig["frontmatterFields"] = {};
-  for (const config of found) {
+  let imagePrefix: WorkspaceConfig["imagePrefix"];
+  let imagePrefixDir: WorkspaceConfig["imagePrefixDir"];
+  for (const { dir: configDir, config } of found) {
     if (config.theme !== undefined) theme = config.theme;
     componentDefinitions = mergeComponentDefinitions(componentDefinitions, config.components ?? []);
     frontmatterFields = mergeFrontmatterFields(frontmatterFields, config.frontmatter ?? {});
+    if (config.imagePrefix !== undefined) {
+      imagePrefix = config.imagePrefix;
+      imagePrefixDir = configDir; // the prefix is relative to *this* config's own directory, not the document's
+    }
   }
 
-  return { theme, componentDefinitions, frontmatterFields };
+  return { theme, componentDefinitions, frontmatterFields, imagePrefix, imagePrefixDir };
 }
 
 type ComponentDefinitionsAccumulator = WorkspaceConfig["componentDefinitions"];

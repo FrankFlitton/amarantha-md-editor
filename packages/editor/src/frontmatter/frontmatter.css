@@ -14,7 +14,11 @@
   padding: 4px 0 8px;
   margin-bottom: 8px;
   border-bottom: 1px solid var(--am-border);
-  font-size: 13px;
+  /* Relative, not a flat 13px: inherits AmaranthaEditor's proseSize scale
+     (prose-sm/base/lg/xl/2xl) from the contentEditable ancestor instead of
+     staying fixed regardless of it. 0.8125em preserves today's exact 13px
+     at the default "base" (1rem/16px) prose size. */
+  font-size: 0.8125em;
 }
 
 .amarantha-frontmatter-row {
@@ -58,7 +62,9 @@
   border: none;
   color: var(--am-text-muted);
   cursor: pointer;
-  font-size: 12px;
+  /* Relative to .amarantha-frontmatter-block's own (now-scaled) font-size —
+     was a flat 12px, preserved proportionally (12/13) instead. */
+  font-size: 0.923em;
   line-height: 1;
   padding: 2px 4px;
   border-radius: 3px;
@@ -94,7 +100,8 @@
   border: none;
   color: var(--am-text-muted);
   cursor: pointer;
-  font-size: 13px;
+  /* Same size as the block's own font-size — inherited, no override needed
+     (was a flat 13px, matching the block's old flat 13px 1:1). */
   line-height: 1;
   padding: 2px 4px;
   border-radius: 3px;
@@ -112,7 +119,7 @@
   border: none;
   color: var(--am-text-muted);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 0.923em; /* relative to the block's font-size — was a flat 12px */
   padding: 0;
   text-decoration: underline;
 }
@@ -130,7 +137,7 @@
   border: 1px solid var(--am-border);
   border-radius: 4px;
   font-family: var(--am-font-mono);
-  font-size: 12px;
+  font-size: 0.923em; /* relative to the block's font-size — was a flat 12px */
   resize: vertical;
   background: var(--am-bg);
   color: var(--am-text);

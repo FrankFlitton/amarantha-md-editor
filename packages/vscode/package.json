@@ -16,7 +16,7 @@
     "customEditors": [
       {
         "viewType": "amarantha.editor",
-        "displayName": "Amarantha",
+        "displayName": "Amarantha Markdown Editor",
         "selector": [{ "filenamePattern": "*.md" }, { "filenamePattern": "*.mdx" }],
         "priority": "option"
       }
@@ -34,6 +34,7 @@
     "@amarantha/core": "*",
     "@amarantha/editor": "*",
     "@amarantha/mdx": "*",
+    "@amarantha/source": "*",
     "@amarantha/theme": "*",
     "@fontsource-variable/geist": "^5.3.0",
     "@fontsource-variable/geist-mono": "^5.3.0",

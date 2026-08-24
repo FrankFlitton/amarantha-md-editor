@@ -1,71 +1,79 @@
+/* A properties table, Notion-style: a subtle left rule marks where a
+   component's editable props begin/end (no border box, no background
+   panel) and every field is a two-column grid row (label | value) so
+   values tab-align regardless of how long any individual label is — same
+   structural approach as frontmatter.css's block. Every value field reuses
+   .amarantha-inline-editable (InlineEditableText) for its edit affordance:
+   a flat grey background on hover/focus, nothing else — no outlines, no
+   scrollbars, no fixed-height boxes. */
 .amarantha-jsx-editor {
   position: relative;
-  border: 1px solid var(--am-border);
-  border-radius: 8px;
-  padding: 12px 14px;
-  margin: 8px 0;
-  background: var(--am-surface);
-}
-
-/* Applied alongside .amarantha-jsx-editor for a Mermaid diagram's card
-   (both the JSX <Mermaid> form and a fenced ```mermaid block) — same flat
-   treatment as fenced code blocks: no border, no padding box, matching
-   the app's minimalist principle rather than the bordered-form look
-   that's still right for a component with several plain-text prop
-   fields. */
-.amarantha-jsx-editor-flat {
-  border: none;
-  padding: 0;
-  /* A touch more top margin than the base card (which relied on its own
-     padding for this) so the toggle badge, still positioned in the
-     margin above the content, has room without a padded box beneath it. */
-  margin: 14px 0 8px;
-  background: transparent;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: start;
+  margin: 14px 0 10px;
+  padding-left: 12px;
+  border-left: 2px solid var(--am-border);
 }
 
 .amarantha-jsx-editor-title {
-  font-weight: 600;
-  font-size: 13px;
+  grid-column: 1 / -1;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--am-text-muted);
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
 }
 
-/* Sits in the card's margin, straddling the top-right corner, rather than
-   inline with the title — a mode toggle (view/edit), not a piece of the
-   component's own content. */
+/* The rendered diagram (Mermaid's default view), and MermaidCodeBlockEditor's
+   value field for a fenced ```mermaid block (no paired label — unlike
+   PropField's rows below, which stay in the value column via .amarantha-jsx-prop's
+   display:contents) — both span both columns rather than sitting in one. The
+   ">" combinator sees past display:contents wrappers (it matches real DOM
+   parentage, not generated boxes), so this only ever matches a value that's
+   a true direct child of the grid, never a PropField-owned one. */
+.amarantha-jsx-editor > .amarantha-mermaid-preview,
+.amarantha-jsx-editor > .amarantha-jsx-prop-value {
+  grid-column: 1 / -1;
+}
+
+/* A quiet text toggle in the title's row, not a bordered pill. */
 .amarantha-jsx-editor-toggle {
   position: absolute;
-  top: -10px;
-  right: -8px;
-  padding: 3px 8px;
-  border: 1px solid var(--am-border);
-  border-radius: 999px;
-  background: var(--am-bg);
+  top: 0;
+  right: 0;
+  background: none;
+  border: none;
   color: var(--am-text-muted);
   font-size: 11px;
   line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   cursor: pointer;
+  padding: 1px 4px;
+  border-radius: 3px;
 }
 
 .amarantha-jsx-editor-toggle:hover {
   background: var(--am-surface);
   color: var(--am-text);
-  border-color: var(--am-accent);
 }
 
+/* Each field is display:contents so its label + value become direct
+   children of the parent grid, the same "row wrapper" technique
+   frontmatter.css uses (.amarantha-frontmatter-row). */
 .amarantha-jsx-prop {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 0;
+  display: contents;
 }
 
 .amarantha-jsx-prop-label {
-  flex: 0 0 120px;
   font-size: 13px;
   color: var(--am-text-muted);
+  white-space: nowrap;
+  padding: 3px 0;
 }
 
 .amarantha-jsx-prop-required {
@@ -73,28 +81,45 @@
   margin-left: 2px;
 }
 
-.amarantha-jsx-prop input[type="text"],
-.amarantha-jsx-prop input[type="number"],
-.amarantha-jsx-prop select {
-  flex: 1;
-  padding: 4px 6px;
-  border: 1px solid var(--am-border);
-  border-radius: 4px;
-  font-size: 13px;
-  background: var(--am-bg);
+.amarantha-jsx-prop-value {
   color: var(--am-text);
+  min-width: 0;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
 .amarantha-jsx-prop-expression {
-  flex: 1;
-  min-height: 60px;
-  padding: 6px;
-  border: 1px solid var(--am-border);
-  border-radius: 4px;
-  font-size: 12px;
-  resize: vertical;
-  background: var(--am-bg);
+  font-family: var(--am-font-mono);
+  font-size: 0.9em;
+}
+
+.amarantha-jsx-prop-checkbox {
+  justify-self: start;
+  align-self: center;
+  accent-color: var(--am-accent);
+  cursor: pointer;
+}
+
+/* Borderless — the same flat-grey hover/focus affordance as
+   .amarantha-inline-editable, just applied to a native <select> instead of
+   a contentEditable div (enum values still need a real dropdown). */
+.amarantha-jsx-prop-select {
+  justify-self: start;
+  font: inherit;
+  font-size: 13px;
   color: var(--am-text);
+  background: transparent;
+  border: none;
+  outline: none;
+  border-radius: 3px;
+  padding: 1px 4px;
+  margin: -1px -4px;
+  cursor: pointer;
+}
+
+.amarantha-jsx-prop-select:hover,
+.amarantha-jsx-prop-select:focus {
+  background: var(--am-surface);
 }
 
 .amarantha-jsx-unknown {

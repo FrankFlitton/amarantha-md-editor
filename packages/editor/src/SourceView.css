@@ -1,0 +1,26 @@
+/* Same five sizes as AmaranthaEditor's proseSize picker, applied to source
+   mode's CodeMirror font-size (--am-source-font-size, consumed by
+   SourceView.tsx's sourceViewTheme) instead of Tailwind Typography's prose
+   scale, which only affects rich mode. A VS Code host overrides this
+   entirely with the user's real VS Code editor font size instead — see
+   vscode-theme-adapter.css's higher-specificity rule for the same
+   variable. */
+.source-view-size-sm {
+  --am-source-font-size: 12px;
+}
+
+.source-view-size-base {
+  --am-source-font-size: 13px;
+}
+
+.source-view-size-lg {
+  --am-source-font-size: 15px;
+}
+
+.source-view-size-xl {
+  --am-source-font-size: 17px;
+}
+
+.source-view-size-2xl {
+  --am-source-font-size: 19px;
+}

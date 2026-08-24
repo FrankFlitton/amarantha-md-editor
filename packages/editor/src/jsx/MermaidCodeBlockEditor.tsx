@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useCodeBlockEditorContext, type CodeBlockEditorProps } from "@mdxeditor/editor";
+import { InlineEditableText } from "../InlineEditableText";
 import { MermaidDiagram } from "./MermaidDiagram";
 import "./jsx-editor.css";
 
@@ -16,11 +17,7 @@ export function MermaidCodeBlockEditor({ code }: CodeBlockEditorProps) {
   const [showCode, setShowCode] = useState(false);
 
   return (
-    <div
-      className="amarantha-jsx-editor amarantha-jsx-editor-flat"
-      data-testid="mermaid-code-block-editor"
-      contentEditable={false}
-    >
+    <div className="amarantha-jsx-editor" data-testid="mermaid-code-block-editor" contentEditable={false}>
       <div className="amarantha-jsx-editor-title">Mermaid</div>
       <button
         type="button"
@@ -32,12 +29,13 @@ export function MermaidCodeBlockEditor({ code }: CodeBlockEditorProps) {
         {showCode ? "View" : "Edit"}
       </button>
       {showCode ? (
-        <textarea
-          className="amarantha-jsx-prop-expression"
-          data-testid="mermaid-block-source"
+        <InlineEditableText
+          className="amarantha-jsx-prop-value amarantha-jsx-prop-expression"
+          testId="mermaid-block-source"
+          ariaLabel="Mermaid chart source"
           value={code}
-          spellCheck={false}
-          onChange={(event) => setCode(event.target.value)}
+          multiline
+          onCommit={setCode}
         />
       ) : (
         <MermaidDiagram chart={code} />

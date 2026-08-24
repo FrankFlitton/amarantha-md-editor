@@ -1,4 +1,5 @@
 import type { ComponentPropDefinition } from "@amarantha/core";
+import { InlineEditableText } from "../InlineEditableText";
 
 export interface PropFieldProps {
   name: string;
@@ -7,24 +8,35 @@ export interface PropFieldProps {
   onCommit: (next: string) => void;
 }
 
-/** One Notion-style property row, auto-choosing an input for the prop's declared type. */
+/**
+ * One Notion-style property row: a plain-text label plus a single
+ * `contentEditable` value field for every type except boolean/enum — the
+ * same click-to-edit primitive (InlineEditableText) used everywhere else in
+ * the app (frontmatter, the document filename), not a bordered/boxed
+ * `<input>`/`<textarea>`. AmaranthaJsxEditor renders each field's two
+ * returned elements as one row of its own CSS grid.
+ */
 export function PropField({ name, prop, value, onCommit }: PropFieldProps) {
   const testId = `jsx-prop-${name}`;
-  const label = (
-    <label className="amarantha-jsx-prop-label" htmlFor={testId}>
+  const plainLabel = (
+    <span className="amarantha-jsx-prop-label" title={prop.description}>
       {name}
       {prop.required && <span className="amarantha-jsx-prop-required">*</span>}
-    </label>
+    </span>
   );
 
   if (prop.type === "boolean") {
     return (
       <div className="amarantha-jsx-prop">
-        {label}
+        <label className="amarantha-jsx-prop-label" htmlFor={testId} title={prop.description}>
+          {name}
+          {prop.required && <span className="amarantha-jsx-prop-required">*</span>}
+        </label>
         <input
           id={testId}
           data-testid={testId}
           type="checkbox"
+          className="amarantha-jsx-prop-checkbox"
           checked={value === "true"}
           onChange={(event) => onCommit(event.target.checked ? "true" : "")}
         />
@@ -35,8 +47,17 @@ export function PropField({ name, prop, value, onCommit }: PropFieldProps) {
   if (prop.type === "enum" && prop.values) {
     return (
       <div className="amarantha-jsx-prop">
-        {label}
-        <select id={testId} data-testid={testId} value={value} onChange={(event) => onCommit(event.target.value)}>
+        <label className="amarantha-jsx-prop-label" htmlFor={testId} title={prop.description}>
+          {name}
+          {prop.required && <span className="amarantha-jsx-prop-required">*</span>}
+        </label>
+        <select
+          id={testId}
+          data-testid={testId}
+          className="amarantha-jsx-prop-select"
+          value={value}
+          onChange={(event) => onCommit(event.target.value)}
+        >
           <option value="" />
           {prop.values.map((option) => (
             <option key={option} value={option}>
@@ -48,32 +69,18 @@ export function PropField({ name, prop, value, onCommit }: PropFieldProps) {
     );
   }
 
-  if (prop.type === "number") {
-    return (
-      <div className="amarantha-jsx-prop">
-        {label}
-        <input
-          id={testId}
-          data-testid={testId}
-          type="number"
-          value={value}
-          onChange={(event) => onCommit(event.target.value)}
-        />
-      </div>
-    );
-  }
-
   if (prop.type === "expression") {
     return (
       <div className="amarantha-jsx-prop">
-        {label}
-        <textarea
-          id={testId}
-          data-testid={testId}
-          className="amarantha-jsx-prop-expression"
+        {plainLabel}
+        <InlineEditableText
+          className="amarantha-jsx-prop-value amarantha-jsx-prop-expression"
+          testId={testId}
+          ariaLabel={`${name} (${prop.description ?? "expression"})`}
           value={value}
-          onChange={(event) => onCommit(event.target.value)}
-          spellCheck={false}
+          placeholder="empty"
+          multiline
+          onCommit={onCommit}
         />
       </div>
     );
@@ -81,13 +88,14 @@ export function PropField({ name, prop, value, onCommit }: PropFieldProps) {
 
   return (
     <div className="amarantha-jsx-prop">
-      {label}
-      <input
-        id={testId}
-        data-testid={testId}
-        type="text"
+      {plainLabel}
+      <InlineEditableText
+        className="amarantha-jsx-prop-value"
+        testId={testId}
+        ariaLabel={name}
         value={value}
-        onChange={(event) => onCommit(event.target.value)}
+        placeholder="empty"
+        onCommit={onCommit}
       />
     </div>
   );

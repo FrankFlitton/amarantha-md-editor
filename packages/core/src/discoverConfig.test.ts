@@ -81,6 +81,25 @@ describe("discoverWorkspaceConfig", () => {
     expect(result.theme).toBe("ember");
   });
 
+  it("resolves imagePrefix relative to the config file's own directory, not the document's", async () => {
+    const fs = fakeFs({
+      "/repo/amarantha.config.json": JSON.stringify({ root: true, imagePrefix: "src/public" }),
+    });
+    const result = await discoverWorkspaceConfig("/repo/content/projects/doc.md", fs);
+    expect(result.imagePrefix).toBe("src/public");
+    expect(result.imagePrefixDir).toBe("/repo");
+  });
+
+  it("a closer config's imagePrefix overrides a parent's, same precedence as theme", async () => {
+    const fs = fakeFs({
+      "/repo/amarantha.config.json": JSON.stringify({ root: true, imagePrefix: "public" }),
+      "/repo/packages/site/amarantha.config.json": JSON.stringify({ imagePrefix: "src/public" }),
+    });
+    const result = await discoverWorkspaceConfig("/repo/packages/site/docs/doc.md", fs);
+    expect(result.imagePrefix).toBe("src/public");
+    expect(result.imagePrefixDir).toBe("/repo/packages/site");
+  });
+
   it("accumulates and merges declared frontmatter fields the same way as components", async () => {
     const fs = fakeFs({
       "/repo/amarantha.config.json": JSON.stringify({

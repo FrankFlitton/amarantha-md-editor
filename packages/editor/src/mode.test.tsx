@@ -9,10 +9,10 @@ describe("AmaranthaEditor mode switching", () => {
     expect(screen.queryByTestId("amarantha-source-view")).toBeNull();
   });
 
-  it("renders the plain textarea in source mode", () => {
+  it("renders the syntax-highlighted CodeMirror source view in source mode", () => {
     render(<AmaranthaEditor value="# hi" onChange={() => {}} mode="source" />);
-    const sourceView = screen.getByTestId("amarantha-source-view") as HTMLTextAreaElement;
-    expect(sourceView.value).toBe("# hi");
+    const sourceView = screen.getByTestId("amarantha-source-view");
+    expect(sourceView.textContent).toBe("# hi");
     expect(screen.queryByTestId("amarantha-rich-editor")).toBeNull();
   });
 });
