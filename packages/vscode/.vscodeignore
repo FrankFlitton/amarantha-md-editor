@@ -1,0 +1,10 @@
+.vscode/**
+src/**
+esbuild.extension.mjs
+vite.webview.config.ts
+tsconfig*.json
+*.test.ts
+*.test.tsx
+**/*.map
+node_modules/**
+.gitignore

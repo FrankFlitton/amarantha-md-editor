@@ -1,0 +1,14 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "amarantha: build vscode extension",
+      "type": "npm",
+      "script": "build:vscode",
+      "path": ".",
+      "problemMatcher": ["$tsc"],
+      "presentation": { "reveal": "silent" },
+      "group": { "kind": "build", "isDefault": true }
+    }
+  ]
+}

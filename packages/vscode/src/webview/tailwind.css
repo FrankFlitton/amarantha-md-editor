@@ -1,0 +1,7 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* packages/editor is a sibling workspace package consumed via a Vite alias
+   (raw source, not node_modules) — make sure its prose/prose-* class usage
+   is scanned even if Tailwind's repo-wide auto-detection misses it. */
+@source "../../../editor/src";

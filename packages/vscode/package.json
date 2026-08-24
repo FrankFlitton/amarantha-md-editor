@@ -1,0 +1,57 @@
+{
+  "name": "@amarantha/vscode",
+  "displayName": "Amarantha",
+  "description": "A rich, source-preserving Markdown/MDX editor for VS Code.",
+  "publisher": "amarantha",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "main": "./dist/extension.cjs",
+  "categories": ["Other"],
+  "activationEvents": [],
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "amarantha.editor",
+        "displayName": "Amarantha",
+        "selector": [{ "filenamePattern": "*.md" }, { "filenamePattern": "*.mdx" }],
+        "priority": "option"
+      }
+    ]
+  },
+  "scripts": {
+    "build:extension": "node esbuild.extension.mjs",
+    "build:webview": "vite build --config vite.webview.config.ts",
+    "build": "npm run build:extension && npm run build:webview",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.webview.json",
+    "test": "vitest run",
+    "package": "npm run build && npx @vscode/vsce package"
+  },
+  "dependencies": {
+    "@amarantha/core": "*",
+    "@amarantha/editor": "*",
+    "@amarantha/mdx": "*",
+    "@amarantha/theme": "*",
+    "@fontsource-variable/geist": "^5.3.0",
+    "@fontsource-variable/geist-mono": "^5.3.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@types/vscode": "^1.85.0",
+    "@vitejs/plugin-react": "^4.6.0",
+    "@vscode/vsce": "^3.0.0",
+    "esbuild": "^0.28.2",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~5.8.3",
+    "vite": "^7.0.4",
+    "vitest": "^3.0.0"
+  }
+}

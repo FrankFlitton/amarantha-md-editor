@@ -1,0 +1,24 @@
+/*
+ * Maps --am-* onto VS Code's own injected --vscode-* CSS variables, so the
+ * editor's colors follow whatever color theme the user has VS Code set to
+ * (including live theme switches — VS Code updates these variables in place,
+ * no JS/message round trip needed) instead of Amarantha's own 10-theme
+ * picker (desktop-only; see @amarantha/theme's tokens.css, imported
+ * elsewhere by this file's sibling but never matching here since nothing
+ * sets data-theme to one of its 10 known ids in this host).
+ *
+ * html[data-theme="vscode"] is set once by main.tsx purely so
+ * mdxeditor-adapter.css's `html[data-theme] .mdxeditor-popup-container`
+ * selector (an attribute-presence check) matches — the color values below
+ * are what actually populate --am-*, tokens.css never fires for this id.
+ */
+html[data-theme="vscode"] {
+  --am-bg: var(--vscode-editor-background);
+  --am-surface: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+  --am-border: var(--vscode-widget-border, var(--vscode-panel-border));
+  --am-text: var(--vscode-editor-foreground);
+  --am-text-muted: var(--vscode-descriptionForeground);
+  --am-accent: var(--vscode-focusBorder);
+  --am-accent-text: var(--vscode-button-foreground);
+  --am-selection: var(--vscode-editor-selectionBackground);
+}
