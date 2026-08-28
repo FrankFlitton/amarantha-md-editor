@@ -28,6 +28,7 @@ const options = {
   alias: {
     "@amarantha/core": path.resolve(__dirname, "../core/src/index.ts"),
     "@amarantha/mdx": path.resolve(__dirname, "../mdx/src/index.ts"),
+    "@amarantha/theme": path.resolve(__dirname, "../theme/src/index.ts"),
   },
 };
 

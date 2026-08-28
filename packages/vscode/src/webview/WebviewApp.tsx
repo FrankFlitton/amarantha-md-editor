@@ -5,12 +5,10 @@ import {
   DEFAULT_FONT_PREFERENCE,
   type ComponentDefinition,
   type FontPreference,
-  type FontSlot,
   type FrontmatterFieldDefinition,
   type ProseSize,
 } from "@amarantha/core";
 import { createRegistry } from "@amarantha/mdx";
-import { PROSE_SIZES, CURATED_FONTS } from "@amarantha/theme";
 import { bridge } from "./vscodeBridge";
 import { useFontVariable } from "./useFontVariable";
 import "./WebviewApp.css";
@@ -55,11 +53,31 @@ export function WebviewApp() {
       } else if (message.type === "externalUpdate") {
         setText(message.text);
         setRemountToken((t) => t + 1);
+      } else if (message.type === "applyMode") {
+        setMode(message.mode);
+      } else if (message.type === "applyFrontmatterHidden") {
+        setFrontmatterHidden(message.hidden);
+      } else if (message.type === "applyProseSize") {
+        setProseSize(message.size);
+      } else if (message.type === "applyFont") {
+        if (message.slot === "sans") setSansFont(message.preference);
+        else if (message.slot === "heading") setHeadingFont(message.preference);
+        else setMonoFont(message.preference);
       }
     });
     bridge.ready();
     return unsubscribe;
   }, []);
+
+  // Reports the webview's current typography/mode state to the extension
+  // host so it can keep the editor/title icons' context keys (and the
+  // typography Quick Pick's "current value" display) in sync — this state
+  // otherwise only lives as React state here. Gated on `uri` since that's
+  // only set once "init" arrives.
+  useEffect(() => {
+    if (!uri) return;
+    bridge.reportState({ mode, frontmatterHidden, proseSize, sansFont, headingFont, monoFont });
+  }, [uri, mode, frontmatterHidden, proseSize, sansFont, headingFont, monoFont]);
 
   const componentRegistry = useMemo(() => createRegistry(componentDefinitions), [componentDefinitions]);
 
@@ -87,30 +105,6 @@ export function WebviewApp() {
 
   return (
     <div className="amarantha-app vscode-shell">
-      <div className="vscode-toolbar">
-        <div className="vscode-toolbar-group" role="group" aria-label="Editor mode">
-          <button type="button" aria-pressed={mode === "rich"} onClick={() => setMode("rich")}>
-            Rich
-          </button>
-          <button type="button" aria-pressed={mode === "source"} onClick={() => setMode("source")}>
-            Source
-          </button>
-        </div>
-        <button type="button" aria-pressed={!frontmatterHidden} onClick={() => setFrontmatterHidden((h) => !h)}>
-          Frontmatter
-        </button>
-        <select value={proseSize} onChange={(event) => setProseSize(event.target.value as ProseSize)} aria-label="Text size">
-          {PROSE_SIZES.map(({ size, label }) => (
-            <option key={size} value={size}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <span className="vscode-toolbar-spacer" />
-        <FontPicker slot="sans" label="Body" value={sansFont} onChange={setSansFont} />
-        <FontPicker slot="heading" label="Heading" value={headingFont} onChange={setHeadingFont} />
-        <FontPicker slot="mono" label="Code" value={monoFont} onChange={setMonoFont} />
-      </div>
       <main className="vscode-editor-surface">
         <AmaranthaEditor
           key={`${uri}:${mode}:${remountToken}:${proseSize}`}
@@ -131,71 +125,6 @@ export function WebviewApp() {
           {headingFontError && <span>Heading font: {headingFontError}</span>}
           {monoFontError && <span>Code font: {monoFontError}</span>}
         </div>
-      )}
-    </div>
-  );
-}
-
-interface FontPickerProps {
-  slot: FontSlot;
-  label: string;
-  value: FontPreference;
-  onChange: (preference: FontPreference) => void;
-}
-
-function FontPicker({ slot, label, value, onChange }: FontPickerProps) {
-  const options = CURATED_FONTS.filter((font) => font.slot === slot);
-  const [customOpen, setCustomOpen] = useState(false);
-  const selectValue = customOpen
-    ? "__custom__"
-    : value.kind === "fontsource"
-      ? (value.fontsourceId ?? "__custom__")
-      : value.kind === "system"
-        ? "__system__"
-        : "__bundled__";
-
-  return (
-    <div className="vscode-font-picker">
-      <select
-        aria-label={`${label} font`}
-        value={selectValue}
-        onChange={(event) => {
-          const next = event.target.value;
-          if (next === "__bundled__") {
-            setCustomOpen(false);
-            onChange({ kind: "bundled" });
-          } else if (next === "__system__") {
-            setCustomOpen(false);
-            onChange({ kind: "system", systemFamily: value.kind === "system" ? value.systemFamily : "" });
-          } else if (next === "__custom__") {
-            setCustomOpen(true);
-          } else {
-            setCustomOpen(false);
-            onChange({ kind: "fontsource", fontsourceId: next });
-          }
-        }}
-      >
-        <option value="__bundled__">{label}: Default</option>
-        {options.map((font) => (
-          <option key={font.id} value={font.id}>
-            {font.label}
-          </option>
-        ))}
-        <option value="__system__">System font…</option>
-        <option value="__custom__">Custom Fontsource ID…</option>
-      </select>
-      {(customOpen || value.kind === "system") && (
-        <input
-          type="text"
-          className="vscode-font-picker-input"
-          placeholder={value.kind === "system" ? "System font family" : "Fontsource ID"}
-          defaultValue={value.kind === "system" ? (value.systemFamily ?? "") : value.kind === "fontsource" ? (value.fontsourceId ?? "") : ""}
-          onBlur={(event) => {
-            const raw = event.target.value.trim();
-            if (!raw) return;
-            onChange(value.kind === "system" ? { kind: "system", systemFamily: raw } : { kind: "fontsource", fontsourceId: raw });
-          }}
-        />
       )}
     </div>
   );

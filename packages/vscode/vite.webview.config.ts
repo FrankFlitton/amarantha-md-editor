@@ -6,11 +6,17 @@ import tailwindcss from "@tailwindcss/vite";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Bundles the webview's React app into dist/webview/{webview.js,webview.css}
-// with fixed (non-hashed) filenames, since getHtmlForWebview.ts references
-// them directly rather than parsing a build manifest. No index.html entry —
+// Bundles the webview's React app into dist/webview/. No index.html entry —
 // the extension builds the HTML shell itself (nonce'd CSP, asWebviewUri) —
-// so the entry is the .tsx file directly via rollupOptions.input.
+// so the entry is the .tsx file directly via rollupOptions.input, and
+// getHtmlForWebview.ts finds the real output filenames via .vite/manifest.json
+// (build.manifest below) rather than a fixed name. Forcing one fixed
+// "webview.css" name was tried first and broke: once more than one CSS
+// asset exists (e.g. curated fonts loaded via separate dynamic import()
+// calls), Rollup can't reuse one filename for multiple distinct assets and
+// silently emits webview.css, webview2.css, webview3.css, ... — only the
+// first of which the HTML ever linked, so most fonts' @font-face rules were
+// never actually loaded. A manifest is the correct, standard fix.
 export default defineConfig({
   // Vite defaults base to "/" (root-absolute asset URLs), which is right for
   // a normal web server but wrong here: a VS Code webview's origin is
@@ -39,13 +45,9 @@ export default defineConfig({
   build: {
     outDir: "dist/webview",
     emptyOutDir: true,
+    manifest: true,
     rollupOptions: {
       input: path.resolve(__dirname, "src/webview/main.tsx"),
-      output: {
-        entryFileNames: "webview.js",
-        assetFileNames: (assetInfo) =>
-          (assetInfo.names?.[0] ?? "").endsWith(".css") ? "webview.css" : "assets/[name]-[hash][extname]",
-      },
     },
   },
 });

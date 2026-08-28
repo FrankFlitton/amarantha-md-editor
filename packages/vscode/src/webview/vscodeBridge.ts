@@ -1,5 +1,5 @@
-import type { FontPreference, FontSlot } from "@amarantha/core";
-import type { HostMessage, WebviewMessage } from "../protocol";
+import type { FontPreference, FontSlot, ProseSize } from "@amarantha/core";
+import type { EditorMode, HostMessage, WebviewMessage } from "../protocol";
 
 interface VsCodeApi {
   postMessage(message: WebviewMessage): void;
@@ -53,6 +53,17 @@ class VscodeBridge {
 
   edit(text: string): void {
     this.vscode.postMessage({ type: "edit", text });
+  }
+
+  reportState(state: {
+    mode: EditorMode;
+    frontmatterHidden: boolean;
+    proseSize: ProseSize;
+    sansFont: FontPreference;
+    headingFont: FontPreference;
+    monoFont: FontPreference;
+  }): void {
+    this.vscode.postMessage({ type: "stateChanged", ...state });
   }
 
   private request<T extends RequestReply>(message: WebviewMessage & { requestId: number }): Promise<T> {

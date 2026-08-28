@@ -14,11 +14,11 @@
   padding: 4px 0 8px;
   margin-bottom: 8px;
   border-bottom: 1px solid var(--am-border);
-  /* Relative, not a flat 13px: inherits AmaranthaEditor's proseSize scale
-     (prose-sm/base/lg/xl/2xl) from the contentEditable ancestor instead of
-     staying fixed regardless of it. 0.8125em preserves today's exact 13px
-     at the default "base" (1rem/16px) prose size. */
-  font-size: 0.8125em;
+  /* No font-size override at all: inherits the body's own size 1:1 —
+     frontmatter reads as a continuation of the document, not a smaller
+     metadata aside. Still follows AmaranthaEditor's proseSize scale
+     (prose-sm/base/lg/xl/2xl) automatically, same as body text, since
+     that's inherited from the contentEditable ancestor either way. */
 }
 
 .amarantha-frontmatter-row {

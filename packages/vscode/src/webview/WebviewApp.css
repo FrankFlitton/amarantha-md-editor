@@ -33,65 +33,6 @@ body {
   height: 100vh;
 }
 
-.vscode-toolbar {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--am-border);
-  font-size: 12px;
-}
-
-.vscode-toolbar-spacer {
-  flex: 1;
-}
-
-.vscode-toolbar-group {
-  display: inline-flex;
-  border: 1px solid var(--am-border);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.vscode-toolbar-group button {
-  border: none;
-  border-radius: 0;
-}
-
-.vscode-toolbar button,
-.vscode-toolbar select,
-.vscode-toolbar input {
-  font: inherit;
-  padding: 3px 8px;
-  border: 1px solid var(--am-border);
-  border-radius: 4px;
-  background: var(--vscode-dropdown-background, var(--am-surface));
-  color: var(--am-text);
-  cursor: pointer;
-}
-
-.vscode-toolbar input {
-  cursor: text;
-  width: 140px;
-}
-
-.vscode-toolbar button:hover {
-  background: var(--am-border);
-}
-
-.vscode-toolbar button[aria-pressed="true"] {
-  background: var(--am-accent);
-  color: var(--am-accent-text);
-  border-color: var(--am-accent);
-}
-
-.vscode-font-picker {
-  display: inline-flex;
-  gap: 4px;
-}
-
 .vscode-editor-surface {
   flex: 1;
   overflow: auto;

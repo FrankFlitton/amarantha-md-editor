@@ -45,14 +45,21 @@ const vscodeMocks = vi.hoisted(() => {
     WorkspaceEdit,
     workspace: {
       applyEdit: vi.fn(async (_edit: WorkspaceEdit) => true),
-      onDidChangeTextDocument: vi.fn(),
+      onDidChangeTextDocument: vi.fn((_handler: (event: unknown) => void) => ({ dispose: vi.fn() })),
     },
     window: { registerCustomEditorProvider: vi.fn() },
+    commands: { executeCommand: vi.fn() },
   };
 });
 vi.mock("vscode", () => vscodeMocks);
 vi.mock("./workspaceConfig", () => ({
   resolveWorkspaceConfig: vi.fn(async () => ({ componentDefinitions: [], frontmatterFields: {} })),
+}));
+// getHtmlForWebview reads the real Vite build manifest (dist/webview/.vite/manifest.json)
+// to find actual output filenames — this unit test isn't running against a
+// real build, so stub just enough of a manifest for it to resolve.
+vi.mock("node:fs", () => ({
+  readFileSync: vi.fn(() => JSON.stringify({ "src/webview/main.tsx": { file: "assets/main.js", css: ["assets/main.css"] } })),
 }));
 
 import { AmaranthaEditorProvider } from "./AmaranthaEditorProvider";
@@ -88,11 +95,29 @@ function makeWebview() {
   };
 }
 
-function makeWebviewPanel(webview: ReturnType<typeof makeWebview>) {
-  return {
+function makeWebviewPanel(webview: ReturnType<typeof makeWebview>, active = true) {
+  let viewStateHandler: ((event: { webviewPanel: { active: boolean } }) => void) | undefined;
+  let disposeHandler: (() => void) | undefined;
+  const panel = {
     webview,
-    onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
+    active,
+    onDidDispose(handler: () => void) {
+      disposeHandler = handler;
+      return { dispose: vi.fn() };
+    },
+    onDidChangeViewState(handler: (event: { webviewPanel: { active: boolean } }) => void) {
+      viewStateHandler = handler;
+      return { dispose: vi.fn() };
+    },
+    setActive(next: boolean) {
+      panel.active = next;
+      viewStateHandler?.({ webviewPanel: { active: next } });
+    },
+    dispose() {
+      disposeHandler?.();
+    },
   };
+  return panel;
 }
 
 function fakeContext() {
@@ -150,5 +175,83 @@ describe("AmaranthaEditorProvider", () => {
     document.setText("changed by someone else");
     changeCallback({ document });
     expect(webview.postMessage).toHaveBeenCalledWith({ type: "externalUpdate", text: "changed by someone else" });
+  });
+
+  it("syncs amarantha.mode/amarantha.frontmatterHidden context keys when the active panel reports state", async () => {
+    const provider = new AmaranthaEditorProvider(fakeContext() as never);
+    const document = makeDocument("original text");
+    const webview = makeWebview();
+    const panel = makeWebviewPanel(webview, true);
+
+    await provider.resolveCustomTextEditor(document as never, panel as never, {} as never);
+    vscodeMocks.commands.executeCommand.mockClear();
+
+    await webview.fire({
+      type: "stateChanged",
+      mode: "source",
+      frontmatterHidden: true,
+      proseSize: "base",
+      sansFont: { kind: "bundled" },
+      headingFont: { kind: "bundled" },
+      monoFont: { kind: "bundled" },
+    });
+
+    expect(vscodeMocks.commands.executeCommand).toHaveBeenCalledWith("setContext", "amarantha.mode", "source");
+    expect(vscodeMocks.commands.executeCommand).toHaveBeenCalledWith("setContext", "amarantha.frontmatterHidden", true);
+  });
+
+  it("resyncs context keys to the newly-focused panel's own state on a tab switch", async () => {
+    const providerA = new AmaranthaEditorProvider(fakeContext() as never);
+    const documentA = makeDocument("doc a");
+    const webviewA = makeWebview();
+    const panelA = makeWebviewPanel(webviewA, true);
+    await providerA.resolveCustomTextEditor(documentA as never, panelA as never, {} as never);
+    await webviewA.fire({
+      type: "stateChanged",
+      mode: "source",
+      frontmatterHidden: false,
+      proseSize: "base",
+      sansFont: { kind: "bundled" },
+      headingFont: { kind: "bundled" },
+      monoFont: { kind: "bundled" },
+    });
+
+    const providerB = new AmaranthaEditorProvider(fakeContext() as never);
+    const documentB = makeDocument("doc b");
+    const webviewB = makeWebview();
+    const panelB = makeWebviewPanel(webviewB, true); // opening panel B activates it, defocusing A
+    panelA.setActive(false);
+    await providerB.resolveCustomTextEditor(documentB as never, panelB as never, {} as never);
+    await webviewB.fire({
+      type: "stateChanged",
+      mode: "rich",
+      frontmatterHidden: true,
+      proseSize: "base",
+      sansFont: { kind: "bundled" },
+      headingFont: { kind: "bundled" },
+      monoFont: { kind: "bundled" },
+    });
+
+    vscodeMocks.commands.executeCommand.mockClear();
+    panelB.setActive(false);
+    panelA.setActive(true); // switch focus back to panel A
+
+    expect(vscodeMocks.commands.executeCommand).toHaveBeenCalledWith("setContext", "amarantha.mode", "source");
+    expect(vscodeMocks.commands.executeCommand).toHaveBeenCalledWith("setContext", "amarantha.frontmatterHidden", false);
+  });
+
+  it("clears context keys when the active panel is disposed", async () => {
+    const provider = new AmaranthaEditorProvider(fakeContext() as never);
+    const document = makeDocument("original text");
+    const webview = makeWebview();
+    const panel = makeWebviewPanel(webview, true);
+
+    await provider.resolveCustomTextEditor(document as never, panel as never, {} as never);
+    vscodeMocks.commands.executeCommand.mockClear();
+
+    panel.dispose();
+
+    expect(vscodeMocks.commands.executeCommand).toHaveBeenCalledWith("setContext", "amarantha.mode", undefined);
+    expect(vscodeMocks.commands.executeCommand).toHaveBeenCalledWith("setContext", "amarantha.frontmatterHidden", undefined);
   });
 });

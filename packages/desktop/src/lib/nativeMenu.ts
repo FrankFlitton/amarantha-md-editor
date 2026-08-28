@@ -51,7 +51,7 @@ async function buildFontSubmenu(
   items.set("bundled", bundled);
 
   const curatedItems: CheckMenuItem[] = [];
-  for (const font of CURATED_FONTS.filter((f) => f.slot === slot)) {
+  for (const font of CURATED_FONTS.filter((f) => f.slots.includes(slot))) {
     const item = await CheckMenuItem.new({
       text: font.label,
       checked: false,

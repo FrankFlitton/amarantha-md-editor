@@ -20,7 +20,56 @@
         "selector": [{ "filenamePattern": "*.md" }, { "filenamePattern": "*.mdx" }],
         "priority": "option"
       }
-    ]
+    ],
+    "commands": [
+      { "command": "amarantha.showSource", "title": "Amarantha: Show Source", "icon": "$(go-to-file)" },
+      { "command": "amarantha.showRich", "title": "Amarantha: Show Rich Text", "icon": "$(open-preview)" },
+      { "command": "amarantha.hideFrontmatter", "title": "Amarantha: Hide Frontmatter", "icon": "$(eye)" },
+      { "command": "amarantha.showFrontmatter", "title": "Amarantha: Show Frontmatter", "icon": "$(eye-closed)" },
+      { "command": "amarantha.typography", "title": "Amarantha: Typography…", "icon": "$(text-size)" }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "amarantha.showSource",
+          "when": "activeCustomEditorId == 'amarantha.editor' && amarantha.mode == 'rich'",
+          "group": "navigation@1"
+        },
+        {
+          "command": "amarantha.showRich",
+          "when": "activeCustomEditorId == 'amarantha.editor' && amarantha.mode == 'source'",
+          "group": "navigation@1"
+        },
+        {
+          "command": "amarantha.hideFrontmatter",
+          "when": "activeCustomEditorId == 'amarantha.editor' && !amarantha.frontmatterHidden",
+          "group": "navigation@2"
+        },
+        {
+          "command": "amarantha.showFrontmatter",
+          "when": "activeCustomEditorId == 'amarantha.editor' && amarantha.frontmatterHidden",
+          "group": "navigation@2"
+        },
+        {
+          "command": "amarantha.typography",
+          "when": "activeCustomEditorId == 'amarantha.editor'",
+          "group": "navigation@3"
+        }
+      ],
+      "commandPalette": [
+        { "command": "amarantha.showSource", "when": "activeCustomEditorId == 'amarantha.editor' && amarantha.mode == 'rich'" },
+        { "command": "amarantha.showRich", "when": "activeCustomEditorId == 'amarantha.editor' && amarantha.mode == 'source'" },
+        {
+          "command": "amarantha.hideFrontmatter",
+          "when": "activeCustomEditorId == 'amarantha.editor' && !amarantha.frontmatterHidden"
+        },
+        {
+          "command": "amarantha.showFrontmatter",
+          "when": "activeCustomEditorId == 'amarantha.editor' && amarantha.frontmatterHidden"
+        },
+        { "command": "amarantha.typography", "when": "activeCustomEditorId == 'amarantha.editor'" }
+      ]
+    }
   },
   "scripts": {
     "build:extension": "node esbuild.extension.mjs",
@@ -38,6 +87,17 @@
     "@amarantha/theme": "*",
     "@fontsource-variable/geist": "^5.3.0",
     "@fontsource-variable/geist-mono": "^5.3.0",
+    "@fontsource/fira-code": "^5.3.0",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/ibm-plex-sans": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@fontsource/libre-baskerville": "^5.3.0",
+    "@fontsource/manrope": "^5.3.0",
+    "@fontsource/playfair-display": "^5.3.0",
+    "@fontsource/space-grotesk": "^5.3.0",
+    "@fontsource/space-mono": "^5.3.0",
+    "@fontsource/work-sans": "^5.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },

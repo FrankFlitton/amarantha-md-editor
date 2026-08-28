@@ -1,11 +1,24 @@
 import * as path from "node:path";
 import * as vscode from "vscode";
-import { reconcileMarkdown } from "@amarantha/core";
+import { DEFAULT_FONT_PREFERENCE, reconcileMarkdown } from "@amarantha/core";
 import { getHtmlForWebview } from "./getHtmlForWebview";
 import { resolveWorkspaceConfig } from "./workspaceConfig";
 import { saveUploadedImage, resolveImagePreviewSrc } from "./imageHost";
 import { resolveFontsourceFont } from "./fontHost";
+import { registerPanel, unregisterPanel, updatePanelState, setActivePanel, type AmaranthaWebviewState } from "./panelRegistry";
 import type { HostMessage, WebviewMessage } from "./protocol";
+
+// Must match WebviewApp.tsx's own initial useState defaults — this seeds the
+// panel registry (and thus the editor/title icons' context keys) before the
+// webview's first real "stateChanged" report arrives.
+const DEFAULT_WEBVIEW_STATE: AmaranthaWebviewState = {
+  mode: "rich",
+  frontmatterHidden: false,
+  proseSize: "base",
+  sansFont: DEFAULT_FONT_PREFERENCE,
+  headingFont: DEFAULT_FONT_PREFERENCE,
+  monoFont: DEFAULT_FONT_PREFERENCE,
+};
 
 /**
  * VS Code CustomTextEditorProvider for .md/.mdx files. The vscode.TextDocument
@@ -64,6 +77,15 @@ export class AmaranthaEditorProvider implements vscode.CustomTextEditorProvider 
     let lastKnownWebviewText = document.getText();
 
     const post = (message: HostMessage) => void webviewPanel.webview.postMessage(message);
+
+    registerPanel(webviewPanel, { post, state: DEFAULT_WEBVIEW_STATE });
+    // onDidChangeViewState only fires on *subsequent* activation changes, not
+    // for the initial reveal — without this explicit check, a panel opened
+    // already-active would never sync its context keys until the user
+    // switched away to another tab and back.
+    if (webviewPanel.active) setActivePanel(webviewPanel, true);
+
+    const viewStateSub = webviewPanel.onDidChangeViewState((event) => setActivePanel(webviewPanel, event.webviewPanel.active));
 
     const sendInit = () => {
       post({
@@ -142,12 +164,25 @@ export class AmaranthaEditorProvider implements vscode.CustomTextEditorProvider 
           }
           return;
         }
+
+        case "stateChanged":
+          updatePanelState(webviewPanel, {
+            mode: message.mode,
+            frontmatterHidden: message.frontmatterHidden,
+            proseSize: message.proseSize,
+            sansFont: message.sansFont,
+            headingFont: message.headingFont,
+            monoFont: message.monoFont,
+          });
+          return;
       }
     });
 
     webviewPanel.onDidDispose(() => {
       changeSub.dispose();
       messageSub.dispose();
+      viewStateSub.dispose();
+      unregisterPanel(webviewPanel);
     });
   }
 }

@@ -1,4 +1,10 @@
-import type { ComponentDefinition, FrontmatterFieldDefinition, FontPreference, FontSlot } from "@amarantha/core";
+import type { ComponentDefinition, FrontmatterFieldDefinition, FontPreference, FontSlot, ProseSize } from "@amarantha/core";
+
+// A local literal type rather than importing EditorMode from @amarantha/editor:
+// that package pulls in React/MDXEditor/CodeMirror/Lexical, which the
+// extension-host bundle (esbuild.extension.mjs, Node target) has no reason
+// to know about for what's just a two-value string union here.
+export type EditorMode = "rich" | "source";
 
 /**
  * Extension-host -> webview messages. `init` seeds the freshly-mounted
@@ -20,7 +26,11 @@ export type HostMessage =
   | { type: "imageUploadResolved"; requestId: number; src: string }
   | { type: "imagePreviewResolved"; requestId: number; src: string }
   | { type: "fontResolved"; requestId: number; family: string; fontFaceCss?: string }
-  | { type: "requestFailed"; requestId: number; error: string };
+  | { type: "requestFailed"; requestId: number; error: string }
+  | { type: "applyMode"; mode: EditorMode }
+  | { type: "applyFrontmatterHidden"; hidden: boolean }
+  | { type: "applyProseSize"; size: ProseSize }
+  | { type: "applyFont"; slot: FontSlot; preference: FontPreference };
 
 /**
  * Webview -> extension-host messages. `edit` is sent debounced, on every
@@ -35,4 +45,13 @@ export type WebviewMessage =
   | { type: "edit"; text: string }
   | { type: "requestImageUpload"; requestId: number; name: string; mimeType: string; dataBase64: string }
   | { type: "requestImagePreview"; requestId: number; src: string }
-  | { type: "requestFont"; requestId: number; slot: FontSlot; preference: FontPreference };
+  | { type: "requestFont"; requestId: number; slot: FontSlot; preference: FontPreference }
+  | {
+      type: "stateChanged";
+      mode: EditorMode;
+      frontmatterHidden: boolean;
+      proseSize: ProseSize;
+      sansFont: FontPreference;
+      headingFont: FontPreference;
+      monoFont: FontPreference;
+    };
