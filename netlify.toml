@@ -1,0 +1,19 @@
+# Netlify site for the amorantha.frankflitton.com live demo.
+#
+# `base` stays at the repo root (not packages/web) because @amarantha/web
+# depends on sibling workspace packages (core/editor/mdx/source/theme) via
+# npm workspaces symlinks + Vite path aliases pointing at their raw src/ —
+# there is no publish/build step for those packages. Installing from
+# packages/web alone would leave those workspace links unresolved.
+[build]
+  base = "."
+  command = "npm ci && npm run build --workspace @amarantha/web"
+  publish = "packages/web/dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

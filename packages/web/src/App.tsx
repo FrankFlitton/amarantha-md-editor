@@ -69,6 +69,8 @@ function App() {
   return (
     <div className={`web-shell amarantha-app ${dark ? "dark" : "light-theme"}`} data-theme={currentThemeId}>
       <div className="web-toolbar">
+        <span className="web-brand">Amarantha</span>
+
         <button type="button" onClick={() => fileInputRef.current?.click()}>
           Open file
         </button>
@@ -102,6 +104,29 @@ function App() {
         <button type="button" aria-pressed={dark} onClick={() => setDark((d) => !d)}>
           {dark ? "Dark" : "Light"}
         </button>
+
+        <span className="web-toolbar-divider" aria-hidden="true" />
+
+        <a
+          className="web-toolbar-link"
+          href="https://github.com/FrankFlitton/amarantha-md-editor"
+          target="_blank"
+          rel="noreferrer"
+        >
+          GitHub
+        </a>
+
+        <div className="web-toolbar-group web-get-amarantha" role="group" aria-label="Get Amarantha">
+          <button type="button" disabled title="Mac app — coming soon">
+            Mac app
+          </button>
+          <button type="button" disabled title="VS Code extension — coming soon">
+            VS Code
+          </button>
+          <button type="button" disabled title="Chrome extension — coming soon">
+            Chrome
+          </button>
+        </div>
       </div>
 
       <main className="web-editor-surface">

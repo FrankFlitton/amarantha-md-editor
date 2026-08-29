@@ -39,6 +39,44 @@ body,
   flex: 1;
 }
 
+.web-brand {
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
+.web-toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--am-border);
+  margin: 0 2px;
+}
+
+.web-toolbar-link {
+  font: inherit;
+  padding: 5px 10px;
+  border: 1px solid var(--am-border);
+  border-radius: 6px;
+  color: var(--am-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.web-toolbar-link:hover {
+  background: var(--am-border);
+}
+
+.web-get-amarantha button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.web-get-amarantha button:disabled:hover {
+  background: var(--am-surface);
+}
+
 .web-toolbar-group {
   display: inline-flex;
   border: 1px solid var(--am-border);
