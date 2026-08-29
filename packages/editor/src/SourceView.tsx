@@ -16,6 +16,8 @@ export interface SourceViewProps {
    *  instead (see vscode-theme-adapter.css) — that rule's extra selector
    *  specificity wins over the plain per-size class here. */
   proseSize?: ProseSize;
+  /** Disables typing while keeping selection/copy/syntax highlighting live. Default false. */
+  readOnly?: boolean;
 }
 
 // Static literal lookup, not a template literal — same reasoning as
@@ -77,7 +79,7 @@ const sourceViewTheme = EditorView.theme({
  * webview's WebviewApp.tsx — which is what reflects an externally-changed
  * value here too, consistently with how rich mode already behaves).
  */
-export function SourceView({ value, onChange, proseSize = "base" }: SourceViewProps) {
+export function SourceView({ value, onChange, proseSize = "base", readOnly = false }: SourceViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   // Kept current every render (not a dep of the mount effect below) so the
   // update listener always calls the latest onChange without needing to
@@ -99,6 +101,8 @@ export function SourceView({ value, onChange, proseSize = "base" }: SourceViewPr
           amaranthaSourceLanguage(),
           syntaxHighlighting(amaranthaHighlightStyle),
           sourceViewTheme,
+          EditorState.readOnly.of(readOnly),
+          EditorView.editable.of(!readOnly),
           EditorView.updateListener.of((update) => {
             if (update.docChanged) onChangeRef.current(update.state.doc.toString());
           }),

@@ -1,0 +1,7 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* Same reasoning as content/tailwind.css and packages/web/src/tailwind.css:
+   the preview panel below mounts a real AmaranthaEditor, whose prose/prose-*
+   classes live in the sibling editor package's raw source, not this file. */
+@source "../../../editor/src";

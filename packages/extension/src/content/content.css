@@ -1,0 +1,86 @@
+/* Extension-added chrome only — the prose/editor styling itself comes from
+   @amarantha/theme and @mdxeditor/editor, injected as separate <style> tags
+   into the same shadow root (see mount.tsx). Scoped to .am-ext-shell so
+   nothing here can leak should this ever run outside the shadow root. */
+
+:host,
+.am-ext-shell {
+  all: initial;
+  display: block;
+  height: 100vh;
+  font-family:
+    var(--am-font-sans, ui-sans-serif), system-ui, -apple-system, sans-serif;
+  color: var(--am-text);
+  background-color: var(--am-bg);
+}
+
+.am-ext-shell * {
+  box-sizing: border-box;
+}
+
+.am-ext-shell {
+  display: flex;
+  flex-direction: column;
+}
+
+.am-ext-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--am-border, rgba(128, 128, 128, 0.3));
+}
+
+.am-ext-brand {
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+.am-ext-source {
+  font-size: 12px;
+  opacity: 0.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 40vw;
+}
+
+.am-ext-spacer {
+  flex: 1;
+}
+
+.am-ext-mode-group {
+  display: flex;
+  gap: 4px;
+}
+
+.am-ext-mode-group button,
+.am-ext-bar button {
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--am-border, rgba(128, 128, 128, 0.3));
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.am-ext-mode-group button[aria-pressed="true"] {
+  background: var(--am-accent, currentColor);
+  color: var(--am-bg);
+  border-color: transparent;
+}
+
+.am-ext-surface {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.am-ext-surface .source-view {
+  height: 100%;
+  padding: 24px;
+}

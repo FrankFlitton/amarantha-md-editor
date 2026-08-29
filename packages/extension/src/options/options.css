@@ -1,0 +1,112 @@
+:root {
+  font-size: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--am-font-sans, ui-sans-serif, system-ui, -apple-system, sans-serif);
+  color: var(--am-text);
+  background-color: var(--am-bg);
+}
+
+.am-options-shell {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) 1fr;
+  min-height: 100vh;
+}
+
+.am-options-panel {
+  padding: 32px 28px;
+  border-right: 1px solid var(--am-border);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.am-options-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.am-options-subtitle {
+  font-size: 13px;
+  color: var(--am-text-muted);
+  margin: -12px 0 0;
+}
+
+.am-options-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.am-options-field label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--am-text-muted);
+}
+
+.am-options-field select,
+.am-options-toggle {
+  font: inherit;
+  font-size: 14px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--am-border);
+  background: var(--am-surface);
+  color: var(--am-text);
+}
+
+.am-options-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--am-border);
+  background: var(--am-surface);
+}
+
+.am-options-hint {
+  font-size: 12px;
+  color: var(--am-text-muted);
+  line-height: 1.5;
+}
+
+.am-options-preview {
+  padding: 32px;
+  overflow: auto;
+}
+
+.am-options-preview-frame {
+  max-width: 720px;
+  margin: 0 auto;
+  border: 1px solid var(--am-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--am-bg);
+}
+
+.am-options-preview-frame .amarantha-app {
+  padding: 24px 28px;
+}
+
+.am-options-saved {
+  font-size: 12px;
+  color: var(--am-accent);
+  min-height: 16px;
+}

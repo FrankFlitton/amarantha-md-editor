@@ -60,6 +60,9 @@ export interface AmaranthaEditorProps {
   frontmatterFields?: Record<string, FrontmatterFieldDefinition>;
   /** Host-supplied: session-only visibility toggle for the frontmatter strip, driven by DocumentHeader's glyph. */
   frontmatterHidden?: boolean;
+  /** Host-supplied: disables editing in both rich and source mode (e.g. the Chrome-extension
+   *  reader, which renders arbitrary pages with nowhere to persist a write-back). Default false. */
+  readOnly?: boolean;
 }
 
 const CODE_BLOCK_LANGUAGES = {
@@ -87,9 +90,10 @@ export function AmaranthaEditor({
   proseSize = "base",
   frontmatterFields,
   frontmatterHidden,
+  readOnly = false,
 }: AmaranthaEditorProps) {
   if (mode === "source") {
-    return <SourceView value={value} onChange={onChange} proseSize={proseSize} />;
+    return <SourceView value={value} onChange={onChange} proseSize={proseSize} readOnly={readOnly} />;
   }
 
   const jsxComponentDescriptors = componentRegistry ? createJsxComponentDescriptors(componentRegistry) : undefined;
@@ -100,6 +104,7 @@ export function AmaranthaEditor({
         ref={editorRef}
         markdown={value}
         onChange={onChange}
+        readOnly={readOnly}
         contentEditableClassName={`${proseClassName} ${PROSE_SIZE_CLASS[proseSize]}`}
         // Vendored, selection-triggered toolbar (see ./toolbar) instead of upstream's
         // always-visible toolbarPlugin: it stays hidden until text is selected, which
