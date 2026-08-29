@@ -30,6 +30,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -37,5 +38,11 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQzMkRCNjBGRDE5NEI2RgpSV1J2U3huOVlOc3lCTkVhd3U2clFJYzFTeEhSOThGdEtVWUJDVjJSdmpsNXN6ZEczZHlUYVQwNAo=",
+      "endpoints": ["https://github.com/FrankFlitton/amarantha-md-editor/releases/latest/download/latest.json"]
+    }
   }
 }

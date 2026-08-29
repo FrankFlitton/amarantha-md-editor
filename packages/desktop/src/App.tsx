@@ -14,6 +14,7 @@ import { fontForSlot, useAppStore } from "./store";
 import { FontPromptModal } from "./FontPromptModal";
 import { ConflictModal } from "./ConflictModal";
 import { DocumentHeader } from "./DocumentHeader";
+import { UpdateBanner } from "./UpdateBanner";
 import "./App.css";
 
 /**
@@ -251,6 +252,7 @@ function App() {
         onOverwrite={(event) => void handleOverwriteConflict(event)}
         onDismiss={dismissConflict}
       />
+      <UpdateBanner />
     </div>
   );
 }
