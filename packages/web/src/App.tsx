@@ -1,29 +1,43 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AmaranthaEditor, type EditorMode } from "@amarantha/editor";
-import type { ThemeFamily, ThemeMode } from "@amarantha/core";
-import { personalWebsiteRegistry } from "@amarantha/mdx";
+import type { AmaranthaConfig, ThemeFamily, ThemeMode } from "@amarantha/core";
+import { createRegistry, personalWebsiteRegistry } from "@amarantha/mdx";
 import { THEME_FAMILIES, themeId } from "@amarantha/theme";
 import "./App.css";
 
 const SAMPLE = `---
-title: "Draft proposal"
-status: draft
-tags: ["design", "editor"]
+title: "Welcome to Amarantha"
+tags: ["getting-started"]
 ---
 
-# Amarantha web harness
+# A markdown editor that doesn't rewrite your files
 
-A plain-browser build of the editor — no Tauri involved. Use this to
-visually verify UI changes (themes, the frontmatter editor, the toolbar)
-without stubbing Tauri's IPC bridge by hand each time.
+Amarantha edits Markdown and MDX **as rich text** — headings, bold and
+italics, lists, links — while keeping the file underneath exactly as you
+wrote it. No surprise reformatting the next time you save.
 
-Try selecting this sentence to see the floating toolbar and the
-selection stats in the header.
+Try it out:
+
+- Select this paragraph to see the floating formatting toolbar.
+- Switch to **Source** (top right) to see the raw Markdown behind this page.
+- Pick a theme from the dropdown, or toggle dark mode.
+
+It also renders custom components inline, right alongside your prose:
 
 <Mermaid chart={\`graph TD
-  A --> B
-  B --> C\`} title="Demo diagram" />
+  Write --> Edit
+  Edit --> Ship\`} title="How it fits together" />
+
+Use **Open file** above to try it on a Markdown or MDX file of your own.
 `;
+
+// Seeds the config editor with the demo's own component registry, so
+// opening it shows a real, working amarantha.config.json rather than an
+// empty shell.
+const DEFAULT_CONFIG: AmaranthaConfig = {
+  components: [...(personalWebsiteRegistry.list?.() ?? [])],
+  frontmatter: {},
+};
 
 function App() {
   const [text, setText] = useState(SAMPLE);
@@ -33,6 +47,13 @@ function App() {
     () => typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [config, setConfig] = useState<AmaranthaConfig>(DEFAULT_CONFIG);
+  const [configOpen, setConfigOpen] = useState(false);
+  const [configText, setConfigText] = useState(() => JSON.stringify(DEFAULT_CONFIG, null, 2));
+  const [configError, setConfigError] = useState<string | null>(null);
+
+  const registry = useMemo(() => createRegistry(config.components ?? []), [config]);
 
   const mode2: ThemeMode = dark ? "dark" : "light";
   const currentThemeId = useMemo(() => themeId(family, mode2), [family, mode2]);
@@ -66,6 +87,21 @@ function App() {
     URL.revokeObjectURL(url);
   }, [text]);
 
+  const handleApplyConfig = useCallback(() => {
+    let parsed: AmaranthaConfig;
+    try {
+      parsed = JSON.parse(configText) as AmaranthaConfig;
+    } catch (error) {
+      setConfigError(error instanceof Error ? error.message : "Invalid JSON");
+      return;
+    }
+    setConfig(parsed);
+    setConfigError(null);
+    if (parsed.theme && THEME_FAMILIES.some((option) => option.family === parsed.theme)) {
+      setFamily(parsed.theme);
+    }
+  }, [configText]);
+
   return (
     <div className={`web-shell amarantha-app ${dark ? "dark" : "light-theme"}`} data-theme={currentThemeId}>
       <div className="web-toolbar">
@@ -80,6 +116,9 @@ function App() {
         </button>
         <button type="button" onClick={handleDownload}>
           Download
+        </button>
+        <button type="button" aria-pressed={configOpen} onClick={() => setConfigOpen((open) => !open)}>
+          Config
         </button>
 
         <span className="web-toolbar-spacer" />
@@ -129,14 +168,30 @@ function App() {
         </div>
       </div>
 
+      {configOpen && (
+        <div className="web-config-panel">
+          <div className="web-config-header">
+            <span>amarantha.config.json</span>
+            <span className="web-config-hint">
+              Component definitions, frontmatter fields, and a theme opinion — same shape a repo's own
+              amarantha.config.json would have. Applies to this demo only.
+            </span>
+            <button type="button" onClick={handleApplyConfig}>
+              Apply
+            </button>
+          </div>
+          <textarea
+            className="web-config-textarea"
+            spellCheck={false}
+            value={configText}
+            onChange={(event) => setConfigText(event.target.value)}
+          />
+          {configError && <div className="web-config-error">{configError}</div>}
+        </div>
+      )}
+
       <main className="web-editor-surface">
-        <AmaranthaEditor
-          value={text}
-          onChange={setText}
-          mode={mode}
-          proseSize="base"
-          componentRegistry={personalWebsiteRegistry}
-        />
+        <AmaranthaEditor value={text} onChange={setText} mode={mode} proseSize="base" componentRegistry={registry} />
       </main>
     </div>
   );

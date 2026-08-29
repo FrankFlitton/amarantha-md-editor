@@ -115,6 +115,66 @@ body,
   overflow: auto;
 }
 
+.web-config-panel {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--am-border);
+  background: var(--am-surface);
+}
+
+.web-config-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.web-config-header > span:first-child {
+  font-weight: 600;
+  font-family: monospace;
+  white-space: nowrap;
+}
+
+.web-config-hint {
+  flex: 1;
+  color: var(--am-text-muted);
+  font-size: 12px;
+}
+
+.web-config-header button {
+  font: inherit;
+  padding: 5px 10px;
+  border: 1px solid var(--am-border);
+  border-radius: 6px;
+  background: var(--am-accent);
+  color: var(--am-accent-text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.web-config-textarea {
+  width: 100%;
+  height: 200px;
+  box-sizing: border-box;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 12px;
+  border: 1px solid var(--am-border);
+  border-radius: 6px;
+  background: var(--am-bg);
+  color: var(--am-text);
+  resize: vertical;
+}
+
+.web-config-error {
+  color: #c0392b;
+  font-size: 12px;
+  font-family: monospace;
+}
+
 .amarantha-prose {
   max-width: 720px;
   margin: 0 auto;
