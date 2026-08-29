@@ -1,0 +1,33 @@
+# A markdown editor that doesn't rewrite your files
+
+Amarantha edits Markdown and MDX **as rich text** — headings, bold and
+italics, lists, links, tables — while keeping the file underneath exactly
+as you wrote it. No surprise reformatting the next time you save.
+
+## Source-preserving
+
+Formatting you didn't touch — list marker style, quote style, line
+wrapping — isn't rewritten out from under you. Most rich Markdown editors
+round-trip your file through their own internal model and hand back
+_a_ Markdown file, just not the one you had. Amarantha's reconciliation
+layer diffs against the original source and only changes what you
+actually edited.
+
+## Custom components, inline
+
+MDX components like diagrams or embeds render right alongside your prose,
+driven by a simple JSON config (`amarantha.config.json`) rather than
+hardcoded support:
+
+<Mermaid chart={`graph TD
+  Write[Write MDX] --> Edit[Edit as rich text]
+  Edit --> Reconcile[Source-preserving reconcile]
+  Reconcile --> Ship[Same file, untouched formatting]`} title="How a save round-trips" />
+
+## One editor, several homes
+
+The same core editing engine (`@amarantha/editor`) runs in a desktop app,
+a VS Code extension, a Chrome extension, and the browser demo — see the
+[Ecosystem](/ecosystem) page for what's live today.
+
+**[Try it yourself on the home page →](/)**

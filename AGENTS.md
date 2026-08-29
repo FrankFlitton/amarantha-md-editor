@@ -27,12 +27,26 @@ npm workspaces, `packages/*`. No lerna/turborepo — plain npm scripts.
 | `packages/desktop` | Tauri + React desktop app. The filesystem is the source of truth; not yet released/distributed. |
 | `packages/vscode` | VS Code `CustomTextEditorProvider` for `.md`/`.mdx`. Not yet published to the Marketplace (`private: true`). |
 | `packages/extension` | MV3 Chrome extension — renders raw `.md` URLs (GitHub raw links, gists, etc.) with Amarantha's rich view. Read-only. Not yet published to the Chrome Web Store. |
-| `packages/web` | Plain-browser build of the editor with no Tauri/VS Code/Chrome host chrome. Doubles as the live demo deployed to **amarantha.app** (see Deployment below) — it is *not* a marketing site, just the editor plus a toolbar. |
+| `packages/web` | Plain-browser build of the editor with no Tauri/VS Code/Chrome host chrome, plus the marketing site around it (Product, Ecosystem, Contact). Deployed to **amarantha.app** (see Deployment below). |
 
 `core`/`editor`/`source`/`mdx`/`theme` have no build step — consuming packages
 alias straight to their `src/` via Vite `resolve.alias` +
 `optimizeDeps.exclude`. Don't add a build step to these without checking
 every consumer's Vite config.
+
+### `packages/web` site structure
+
+The home route (`/`) is still the interactive editor demo
+(`src/pages/HomePage.tsx`). The other routes (`/product`, `/ecosystem`,
+`/contact`) are marketing pages authored as `.mdx` files under
+`src/content/`, imported with Vite's `?raw` suffix and rendered through
+`AmaranthaEditor` in read-only rich mode (`src/site/ContentPage.tsx`) — the
+site dogfoods the same editor component it's selling, rather than running
+a separate static-site pipeline. Routing is a ~40-line `pushState` wrapper
+in `src/site/router.tsx`, not a library: four flat routes don't need one,
+and `netlify.toml`'s existing `/* -> /index.html` redirect (plus Vite's
+default dev-server SPA fallback) already makes direct loads of those paths
+work. Site-wide chrome (nav, theme picker) lives in `src/site/`.
 
 ## Commands
 

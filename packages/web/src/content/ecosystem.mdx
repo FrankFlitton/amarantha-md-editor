@@ -1,0 +1,37 @@
+# Where to get Amarantha
+
+One editing engine, several homes. Everything below shares the same
+source-preserving core — what differs is where the files live.
+
+| Surface | Status | Link |
+| --- | --- | --- |
+| 🌐 Web demo | Live | [amarantha.app](/) |
+| 🖥️ Desktop app (macOS / Windows) | In progress | [Releases](https://github.com/FrankFlitton/amarantha-md-editor/releases) |
+| 🧩 VS Code extension | Not yet published | [Source](https://github.com/FrankFlitton/amarantha-md-editor/tree/main/packages/vscode) |
+| 🌎 Chrome extension | Not yet published | [Source](https://github.com/FrankFlitton/amarantha-md-editor/tree/main/packages/extension) |
+
+## Desktop app
+
+A Tauri + React shell where the filesystem is the source of truth — open a
+folder, edit `.md`/`.mdx` files in place. Builds are unsigned for now; see
+the [releases page](https://github.com/FrankFlitton/amarantha-md-editor/releases)
+for the latest macOS build.
+
+## VS Code extension
+
+A `CustomTextEditorProvider` for `.md`/`.mdx` files, so you get the rich
+view without leaving your editor. Not yet on the Marketplace — build it
+locally from `packages/vscode` in the meantime.
+
+## Chrome extension
+
+Renders raw `.md` URLs — GitHub raw links, gists, and the like — with
+Amarantha's rich view. Read-only. Not yet on the Chrome Web Store.
+
+## Everything is open source
+
+The whole monorepo — editor, desktop app, extensions, and this site — is
+on [GitHub](https://github.com/FrankFlitton/amarantha-md-editor). Issues
+and PRs are welcome.
+
+**Questions about any of this? [Get in touch →](/contact)**
