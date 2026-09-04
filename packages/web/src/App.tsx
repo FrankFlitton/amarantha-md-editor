@@ -48,6 +48,13 @@ function App() {
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // MDXEditor only reads `markdown` as its *initial* content (it's
+  // uncontrolled internally) — bumping this and folding it into
+  // AmaranthaEditor's key forces a remount so opening a new file actually
+  // replaces what's on screen. Same pattern as packages/desktop's App.tsx
+  // and packages/vscode's WebviewApp.tsx.
+  const [docGeneration, setDocGeneration] = useState(0);
+
   const [config, setConfig] = useState<AmaranthaConfig>(DEFAULT_CONFIG);
   const [configOpen, setConfigOpen] = useState(false);
   const [configText, setConfigText] = useState(() => JSON.stringify(DEFAULT_CONFIG, null, 2));
@@ -70,7 +77,10 @@ function App() {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
-    file.text().then(setText);
+    file.text().then((content) => {
+      setText(content);
+      setDocGeneration((generation) => generation + 1);
+    });
   }, []);
 
   const handleCopy = useCallback(() => {
@@ -191,7 +201,14 @@ function App() {
       )}
 
       <main className="web-editor-surface">
-        <AmaranthaEditor value={text} onChange={setText} mode={mode} proseSize="base" componentRegistry={registry} />
+        <AmaranthaEditor
+          key={`${docGeneration}:${mode}`}
+          value={text}
+          onChange={setText}
+          mode={mode}
+          proseSize="base"
+          componentRegistry={registry}
+        />
       </main>
     </div>
   );
