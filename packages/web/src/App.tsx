@@ -73,6 +73,20 @@ function App() {
     document.documentElement.dataset.theme = currentThemeId;
   }, [currentThemeId]);
 
+  // Cmd/Ctrl+O would otherwise fall through to the browser's own "Open
+  // File" dialog (which navigates the tab to a local file, losing the
+  // app) — capture it first so it opens into the editor instead.
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "o") {
+        event.preventDefault();
+        fileInputRef.current?.click();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const handleOpenFile = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = "";
