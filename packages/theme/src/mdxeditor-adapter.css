@@ -17,6 +17,7 @@
   --font-body: var(--am-font-sans);
   --font-mono: var(--am-font-mono);
 
+  --basePageBg: var(--am-bg);
   --baseBg: var(--am-surface);
   --baseBgSubtle: var(--am-surface);
   --baseBgHover: var(--am-border);
@@ -25,13 +26,18 @@
   --baseTextContrast: var(--am-text);
   --baseBorder: var(--am-border);
   --baseBorderHover: var(--am-accent);
+  --baseLine: var(--am-border);
   --baseSolid: var(--am-text-muted);
   --baseSolidHover: var(--am-text);
 
   --accentBase: var(--am-surface);
   --accentBg: var(--am-surface);
   --accentBgSubtle: var(--am-surface);
+  --accentBgHover: var(--am-surface);
+  --accentBgActive: var(--am-surface);
   --accentBorder: var(--am-accent);
+  --accentBorderHover: var(--am-accent);
+  --accentLine: var(--am-accent);
   --accentSolid: var(--am-accent);
   --accentSolidHover: var(--am-accent);
   --accentText: var(--am-accent);
@@ -97,6 +103,7 @@ html[data-theme],
 [data-theme].amarantha-app,
 html[data-theme] .mdxeditor-popup-container,
 [data-theme].amarantha-app .mdxeditor-popup-container {
+  --basePageBg: var(--am-bg);
   --baseBg: var(--am-surface);
   --baseBgSubtle: var(--am-surface);
   --baseBgHover: var(--am-border);
@@ -106,13 +113,18 @@ html[data-theme] .mdxeditor-popup-container,
   --baseTextContrast: var(--am-text);
   --baseBorder: var(--am-border);
   --baseBorderHover: var(--am-accent);
+  --baseLine: var(--am-border);
   --baseSolid: var(--am-text-muted);
   --baseSolidHover: var(--am-text);
 
   --accentBase: var(--am-surface);
   --accentBg: var(--am-surface);
   --accentBgSubtle: var(--am-surface);
+  --accentBgHover: var(--am-surface);
+  --accentBgActive: var(--am-surface);
   --accentBorder: var(--am-accent);
+  --accentBorderHover: var(--am-accent);
+  --accentLine: var(--am-accent);
   --accentSolid: var(--am-accent);
   --accentSolidHover: var(--am-accent);
   --accentText: var(--am-accent);

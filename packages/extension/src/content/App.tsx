@@ -17,8 +17,9 @@ export function ContentApp({ markdown, filename, settings, sourceUrl, prefersDar
   // dialogs to `overlayContainer` (default: document.body, per its own
   // EditorRootElement) — the real page's DOM, entirely outside this shadow
   // root, where none of the <style> injected in main.tsx can ever reach it.
-  // Pointing it at this shell div instead keeps those portals inside the
-  // shadow tree and inheriting the --am-* tokens `data-theme` below sets.
+  // Pointing it at a node inside the shell (see the dedicated anchor div in
+  // the JSX below) keeps those portals in the shadow tree, inheriting the
+  // --am-* tokens `data-theme` sets, without also becoming a flex item.
   const [overlayContainer, setOverlayContainer] = useState<HTMLDivElement | null>(null);
   const [mode, setMode] = useState<EditorMode>("rich");
   // Lifted out of AmaranthaEditor rather than left as page-owned state:
@@ -66,53 +67,60 @@ export function ContentApp({ markdown, filename, settings, sourceUrl, prefersDar
   }, [handleSave]);
 
   return (
-    <div
-      ref={setOverlayContainer}
-      className={`am-ext-shell amarantha-app ${dark ? "dark" : "light-theme"}`}
-      data-theme={currentThemeId}
-    >
-      <div className="am-ext-bar">
-        <span className="am-ext-brand">Amarantha</span>
-        <span className="am-ext-source" title={sourceUrl}>
-          {sourceUrl}
-        </span>
-        {dirty && (
-          <span className="am-ext-dirty" title="Unsaved changes">
-            ●
+    <div className={`amarantha-app ${dark ? "dark" : "light-theme"}`} data-theme={currentThemeId}>
+      <div className="am-ext-shell">
+        <div className="am-ext-bar">
+          <span className="am-ext-brand">Amarantha</span>
+          <span className="am-ext-source" title={sourceUrl}>
+            {sourceUrl}
           </span>
-        )}
-        <span className="am-ext-spacer" />
-        <div className="am-ext-mode-group" role="group" aria-label="View mode">
-          <button type="button" aria-pressed={mode === "rich"} onClick={() => setMode("rich")}>
-            Rich
+          {dirty && (
+            <span className="am-ext-dirty" title="Unsaved changes">
+              ●
+            </span>
+          )}
+          <span className="am-ext-spacer" />
+          <div className="am-ext-mode-group" role="group" aria-label="View mode">
+            <button type="button" aria-pressed={mode === "rich"} onClick={() => setMode("rich")}>
+              Rich
+            </button>
+            <button type="button" aria-pressed={mode === "source"} onClick={() => setMode("source")}>
+              Source
+            </button>
+          </div>
+          <button type="button" aria-pressed={editing} onClick={() => setEditing((prev) => !prev)}>
+            {editing ? "Editing" : "Edit"}
           </button>
-          <button type="button" aria-pressed={mode === "source"} onClick={() => setMode("source")}>
-            Source
+          <button type="button" onClick={handleSave} disabled={!dirty} title={`Save as ${filename}`}>
+            Save
           </button>
         </div>
-        <button type="button" aria-pressed={editing} onClick={() => setEditing((prev) => !prev)}>
-          {editing ? "Editing" : "Edit"}
-        </button>
-        <button type="button" onClick={handleSave} disabled={!dirty} title={`Save as ${filename}`}>
-          Save
-        </button>
+        <main className="am-ext-surface">
+          <AmaranthaEditor
+            // Both `value` (SourceView) and `readOnly` (corePlugin init config,
+            // MDXEditor) are seed-once inputs, not reactively-synced props —
+            // same "remount via key" contract every other host in this repo
+            // relies on for mode/file switches, extended here to cover the
+            // Edit/Lock toggle too so flipping it actually takes effect.
+            key={`${mode}:${editing}`}
+            value={content}
+            onChange={setContent}
+            mode={mode}
+            proseSize={settings.proseSize}
+            readOnly={!editing}
+            overlayContainer={overlayContainer}
+          />
+        </main>
       </div>
-      <main className="am-ext-surface">
-        <AmaranthaEditor
-          // Both `value` (SourceView) and `readOnly` (corePlugin init config,
-          // MDXEditor) are seed-once inputs, not reactively-synced props —
-          // same "remount via key" contract every other host in this repo
-          // relies on for mode/file switches, extended here to cover the
-          // Edit/Lock toggle too so flipping it actually takes effect.
-          key={`${mode}:${editing}`}
-          value={content}
-          onChange={setContent}
-          mode={mode}
-          proseSize={settings.proseSize}
-          readOnly={!editing}
-          overlayContainer={overlayContainer}
-        />
-      </main>
+      {/* Dedicated portal anchor, kept OUTSIDE .am-ext-shell: that div is a
+          flex container, and MDXEditor's own popupContainer sets itself
+          `position: relative` (not fixed) — as a flex item there it got
+          pulled into the flex layout instead of just sitting inert, which is
+          what broke the floating toolbar/selects (invisible, unclickable).
+          A plain sibling here still inherits this wrapper's --am-* tokens
+          for CSS variable purposes, but takes normal (non-flex) block flow,
+          same as MDXEditor's own document.body default. */}
+      <div ref={setOverlayContainer} />
     </div>
   );
 }
