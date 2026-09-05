@@ -19,13 +19,13 @@ npm workspaces, `packages/*`. No lerna/turborepo — plain npm scripts.
 
 | Package | What it is |
 |---|---|
-| `packages/core` | Document model, config discovery, no UI. |
+| `packages/core` | Document model, config discovery, no UI. See [`packages/core/AGENTS.md`](./packages/core/AGENTS.md). |
 | `packages/editor` | `AmaranthaEditor` — the shared rich/source editor component. Built on MDXEditor/Lexical, with a custom source-preserving reconciliation layer. |
 | `packages/source` | Source-view (CodeMirror) plumbing — highlighting, JSX-in-Markdown nesting. |
 | `packages/mdx` | Component registries for custom JSX (e.g. `<Mermaid>`) rendered inline in the rich view. |
 | `packages/theme` | Shared theme tokens/CSS, font loading. |
 | `packages/desktop` | Tauri + React desktop app. The filesystem is the source of truth; not yet released/distributed. |
-| `packages/vscode` | VS Code `CustomTextEditorProvider` for `.md`/`.mdx`. Not yet published to the Marketplace (`private: true`). |
+| `packages/vscode` | VS Code `CustomTextEditorProvider` for `.md`/`.mdx`. Not yet published to the Marketplace (`private: true`). Ships a JSON Schema (`schemas/amarantha.config.schema.json`) for `amarantha.config.json` IntelliSense — keep it hand-in-sync with `packages/core/src/config.ts` and `types.ts`. |
 | `packages/extension` | MV3 Chrome extension — renders raw `.md` URLs (GitHub raw links, gists, etc.) with Amarantha's rich view. Read-only. Not yet published to the Chrome Web Store. |
 | `packages/web` | Plain-browser build of the editor with no Tauri/VS Code/Chrome host chrome. Doubles as the live demo deployed to **amarantha.app** (see Deployment below) — it is *not* a marketing site, just the editor plus a toolbar. |
 
