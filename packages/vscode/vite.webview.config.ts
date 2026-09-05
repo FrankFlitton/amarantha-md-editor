@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { fontDisplayOptional } from "../theme/vite-plugin-font-display-optional";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -25,7 +26,11 @@ export default defineConfig({
   // relative base makes every CSS-referenced asset (fonts included) resolve
   // correctly against webview.css's own location instead.
   base: "./",
-  plugins: [react(), tailwindcss()],
+  // fontDisplayOptional rewrites @fontsource's hardcoded `font-display:
+  // swap` to `optional` — see that file for why "swap" is the actual cause
+  // of the visible fallback-font-then-real-font flash, both for the default
+  // Geist import here and for every font bundledFonts.ts lazily loads.
+  plugins: [react(), tailwindcss(), fontDisplayOptional()],
 
   resolve: {
     alias: [

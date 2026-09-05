@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { fontDisplayOptional } from "../theme/vite-plugin-font-display-optional";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -13,7 +14,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // and as the seed for the eventual VS Code / Chrome-extension reader,
 // which will need the same Tauri-free host shape.
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  // fontDisplayOptional rewrites @fontsource's hardcoded `font-display:
+  // swap` to `optional` — see that file for why "swap" is the actual cause
+  // of the visible fallback-font-then-Geist flash on first paint.
+  plugins: [react(), tailwindcss(), fontDisplayOptional()],
 
   resolve: {
     alias: [
