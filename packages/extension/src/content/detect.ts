@@ -1,5 +1,6 @@
 /**
- * A URL ending in .md is not necessarily a raw markdown file — GitHub's own
+ * A URL ending in .md/.mdx/.markdown/.txt (manifest.json's content_scripts
+ * matches) is not necessarily a raw text file — GitHub's own
  * `/blob/main/README.md` page (real HTML, syntax-highlighted UI) matches the
  * same URL shape. Only replace the page when Chrome is actually showing its
  * native "unstyled text" viewer for this document: either the server sent a
@@ -7,8 +8,10 @@
  * whole body is Chrome's single generated <pre> wrapper — the same signal
  * every raw-text-rendering extension relies on, since there is no other way
  * from a content script to distinguish "raw file" from "HTML page that
- * happens to have a .md path" without re-fetching (done separately, in
- * fetchRawText, once this check has already said yes).
+ * happens to have a matching path" without re-fetching (done separately, in
+ * fetchRawText, once this check has already said yes). Extension-agnostic by
+ * design: a .txt or .mdx file gets the exact same content-type/DOM check as
+ * a .md one, so supporting another extension is purely a manifest.json edit.
  */
 export function isRawMarkdownDocument(doc: Document = document): boolean {
   const contentType = doc.contentType ?? "";
