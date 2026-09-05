@@ -83,9 +83,20 @@
  * correctly but stopped exactly at that div). Includes --baseBase, which
  * the rule above omits — the tooltip is the one thing in this stylesheet
  * that needs it.
+ *
+ * `[data-theme].amarantha-app` is the second half of each selector pair
+ * for a host that can't mirror data-theme onto `document.documentElement`
+ * at all — the Chrome extension's content script, which renders inside a
+ * Shadow DOM specifically to keep the host page's CSS out and its own CSS
+ * in. A `<style>` inside a shadow tree can never match `html[...]`; the
+ * portal target has to become a descendant of the shadow tree's own themed
+ * root instead (see AmaranthaEditor's `overlayContainer` prop), and
+ * `.amarantha-app` is the one class every host already puts on that root.
  */
 html[data-theme],
-html[data-theme] .mdxeditor-popup-container {
+[data-theme].amarantha-app,
+html[data-theme] .mdxeditor-popup-container,
+[data-theme].amarantha-app .mdxeditor-popup-container {
   --baseBg: var(--am-surface);
   --baseBgSubtle: var(--am-surface);
   --baseBgHover: var(--am-border);

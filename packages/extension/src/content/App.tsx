@@ -13,6 +13,13 @@ export interface ContentAppProps {
 }
 
 export function ContentApp({ markdown, filename, settings, sourceUrl, prefersDark }: ContentAppProps) {
+  // MDXEditor portals its floating toolbar, code-block language <Select>, and
+  // dialogs to `overlayContainer` (default: document.body, per its own
+  // EditorRootElement) — the real page's DOM, entirely outside this shadow
+  // root, where none of the <style> injected in main.tsx can ever reach it.
+  // Pointing it at this shell div instead keeps those portals inside the
+  // shadow tree and inheriting the --am-* tokens `data-theme` below sets.
+  const [overlayContainer, setOverlayContainer] = useState<HTMLDivElement | null>(null);
   const [mode, setMode] = useState<EditorMode>("rich");
   // Lifted out of AmaranthaEditor rather than left as page-owned state:
   // `value` only seeds the editor once per mount (see SourceView's own
@@ -59,7 +66,11 @@ export function ContentApp({ markdown, filename, settings, sourceUrl, prefersDar
   }, [handleSave]);
 
   return (
-    <div className={`am-ext-shell amarantha-app ${dark ? "dark" : "light-theme"}`} data-theme={currentThemeId}>
+    <div
+      ref={setOverlayContainer}
+      className={`am-ext-shell amarantha-app ${dark ? "dark" : "light-theme"}`}
+      data-theme={currentThemeId}
+    >
       <div className="am-ext-bar">
         <span className="am-ext-brand">Amarantha</span>
         <span className="am-ext-source" title={sourceUrl}>
@@ -99,6 +110,7 @@ export function ContentApp({ markdown, filename, settings, sourceUrl, prefersDar
           mode={mode}
           proseSize={settings.proseSize}
           readOnly={!editing}
+          overlayContainer={overlayContainer}
         />
       </main>
     </div>

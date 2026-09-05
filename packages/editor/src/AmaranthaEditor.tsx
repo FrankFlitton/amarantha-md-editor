@@ -63,6 +63,13 @@ export interface AmaranthaEditorProps {
   /** Host-supplied: disables editing in both rich and source mode (e.g. the Chrome-extension
    *  reader, which renders arbitrary pages with nowhere to persist a write-back). Default false. */
   readOnly?: boolean;
+  /** Host-supplied: where MDXEditor appends its portaled UI (floating toolbar, the
+   *  code-block language <Select>, link/image/table dialogs) — MDXEditor's own default
+   *  is `document.body`, which is fine for a host whose own stylesheets are global. A
+   *  host that isolates its styles in a Shadow DOM (the Chrome extension) needs this
+   *  pointed at an element *inside* that shadow tree, or every portaled element renders
+   *  fully unstyled — none of the host's injected CSS can reach `document.body` at all. */
+  overlayContainer?: HTMLElement | null;
 }
 
 const CODE_BLOCK_LANGUAGES = {
@@ -91,6 +98,7 @@ export function AmaranthaEditor({
   frontmatterFields,
   frontmatterHidden,
   readOnly = false,
+  overlayContainer,
 }: AmaranthaEditorProps) {
   if (mode === "source") {
     return <SourceView value={value} onChange={onChange} proseSize={proseSize} readOnly={readOnly} />;
@@ -105,6 +113,7 @@ export function AmaranthaEditor({
         markdown={value}
         onChange={onChange}
         readOnly={readOnly}
+        overlayContainer={overlayContainer}
         contentEditableClassName={`${proseClassName} ${PROSE_SIZE_CLASS[proseSize]}`}
         // Vendored, selection-triggered toolbar (see ./toolbar) instead of upstream's
         // always-visible toolbarPlugin: it stays hidden until text is selected, which
