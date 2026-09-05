@@ -1,4 +1,5 @@
 import { createRoot } from "react-dom/client";
+import { setMermaidLoader } from "@amarantha/editor";
 import { ContentApp } from "./App";
 import { fetchRawText, isRawMarkdownDocument } from "./detect";
 import { loadSettings } from "../lib/settings";
@@ -7,6 +8,14 @@ import themeCss from "@amarantha/theme/index.css?inline";
 import mdxeditorCss from "@mdxeditor/editor/style.css?inline";
 import tailwindCss from "./tailwind.css?inline";
 import shellCss from "./content.css?inline";
+
+// content.js never bundles mermaid (see vite.content.config.ts's `external`)
+// — a plain `import("mermaid")` from this classic content script would
+// resolve against the host page's origin and 404 anyway. This points it at
+// the extension's own packaged chunk instead, fetched only if a document
+// actually renders a Mermaid diagram. `@vite-ignore`: the specifier isn't a
+// literal, so there's nothing for Vite to statically analyze or bundle here.
+setMermaidLoader(() => import(/* @vite-ignore */ chrome.runtime.getURL("lazy/mermaid-chunk.js")));
 
 async function run() {
   if (!isRawMarkdownDocument()) return;
@@ -46,7 +55,13 @@ async function run() {
 
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
   createRoot(mountPoint).render(
-    <ContentApp markdown={markdown} settings={settings} sourceUrl={sourceUrl} prefersDark={prefersDark} />
+    <ContentApp
+      markdown={markdown}
+      filename={filename}
+      settings={settings}
+      sourceUrl={sourceUrl}
+      prefersDark={prefersDark}
+    />
   );
 }
 

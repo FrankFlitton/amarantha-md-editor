@@ -95,14 +95,11 @@ body {
 .am-options-preview-frame {
   max-width: 720px;
   margin: 0 auto;
+  padding: 24px 28px;
   border: 1px solid var(--am-border);
   border-radius: 12px;
   overflow: hidden;
   background: var(--am-bg);
-}
-
-.am-options-preview-frame .amarantha-app {
-  padding: 24px 28px;
 }
 
 .am-options-saved {

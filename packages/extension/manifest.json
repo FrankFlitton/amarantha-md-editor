@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Amarantha Markdown Reader",
-  "description": "Renders raw .md files you land on anywhere on the web with Amarantha's rich, read-only view.",
+  "description": "Renders raw .md files you land on anywhere on the web with Amarantha's rich view — edit and save a local copy, no file-system access.",
   "version": "0.1.0",
   "icons": {
     "16": "icons/icon-16.png",
@@ -29,9 +29,15 @@
   "permissions": ["storage"],
   "content_scripts": [
     {
-      "matches": ["*://*/*.md"],
+      "matches": ["*://*/*.md", "file:///*.md"],
       "js": ["content.js"],
       "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["lazy/*.js"],
+      "matches": ["*://*/*", "file:///*"]
     }
   ]
 }

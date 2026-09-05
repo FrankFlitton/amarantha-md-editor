@@ -113,16 +113,23 @@ export function OptionsApp() {
       </div>
 
       <div className="am-options-preview">
-        <div className="am-options-preview-frame">
-          <div className={`amarantha-app ${dark ? "dark" : "light-theme"}`} data-theme={currentThemeId}>
-            <AmaranthaEditor
-              value={PREVIEW_MARKDOWN}
-              onChange={() => {}}
-              mode="rich"
-              proseSize={settings.proseSize}
-              readOnly
-            />
-          </div>
+        {/* data-theme/dark live on this same element as .am-options-preview-frame,
+            not a nested div: the frame is what paints `background: var(--am-bg)`
+            (options.css), and a CSS custom property only reaches descendants of
+            whichever element sets it — putting the theme attributes one level
+            down left the frame's own background stuck on the ambient default,
+            never the picked theme's. */}
+        <div
+          className={`am-options-preview-frame amarantha-app ${dark ? "dark" : "light-theme"}`}
+          data-theme={currentThemeId}
+        >
+          <AmaranthaEditor
+            value={PREVIEW_MARKDOWN}
+            onChange={() => {}}
+            mode="rich"
+            proseSize={settings.proseSize}
+            readOnly
+          />
         </div>
       </div>
     </div>

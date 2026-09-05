@@ -24,12 +24,36 @@ export function isRawMarkdownDocument(doc: Document = document): boolean {
  * Re-fetches the same URL rather than reading the DOM: `.innerText` on
  * Chrome's generated <pre> collapses some whitespace and line-ending detail
  * that reconcileMarkdown-adjacent tooling elsewhere in this codebase treats
- * as significant. `credentials: "include"` matters for private raw files
- * (e.g. a GitHub raw URL behind a logged-in session) — the original
- * navigation already had the browser's cookies attached, so the re-fetch
- * should too.
+ * as significant. Deliberately *not* `credentials: "include"`: this fetch
+ * targets the exact URL the document is already at, so the default
+ * "same-origin" mode already attaches cookies for a private raw file behind
+ * a logged-in session — "include" adds nothing there but actively breaks the
+ * far more common public case. A page served with a CSP `sandbox` directive
+ * (raw.githubusercontent.com among them) gets an opaque ("null") origin,
+ * which turns this same-URL fetch into a cross-origin one from the browser's
+ * perspective; a credentialed cross-origin request can never accept the
+ * wildcard `Access-Control-Allow-Origin: *` such hosts serve, so `"include"`
+ * made every sandboxed page's fetch fail outright — that opaque origin can't
+ * carry cookies either way, so nothing was gained by requesting them.
+ *
+ * `file:` is a separate, harder wall: the Fetch API's scheme allowlist
+ * (Chrome's own error names it — "brave, chrome, chrome-extension,
+ * chrome-untrusted, data, http, https, isolated-app") never includes `file`,
+ * full stop. No manifest permission changes that — `host_permissions` and
+ * "Allow access to file URLs" control whether a request is *allowed*, not
+ * which schemes `fetch()` is spec'd to attempt at all. For `file:` this reads
+ * the already-loaded document instead: Chrome's local text-file viewer is the
+ * same generated single `<pre>` wrapper isRawMarkdownDocument checks for,
+ * already holding the exact file bytes by the time this content script runs.
+ * `.textContent`, not `.innerText`: textContent is a plain DOM-tree
+ * serialization uninvolved with layout, so it doesn't inherit innerText's
+ * whitespace-collapsing behavior — the same fidelity concern that ruled out
+ * reading the DOM for the http(s) path above, without the same cost here.
  */
 export async function fetchRawText(url: string): Promise<string> {
-  const response = await fetch(url, { credentials: "include" });
+  if (url.startsWith("file:")) {
+    return document.body.firstElementChild?.textContent ?? "";
+  }
+  const response = await fetch(url);
   return response.text();
 }

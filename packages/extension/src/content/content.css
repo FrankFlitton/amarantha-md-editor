@@ -68,10 +68,22 @@
   cursor: pointer;
 }
 
-.am-ext-mode-group button[aria-pressed="true"] {
+.am-ext-mode-group button[aria-pressed="true"],
+.am-ext-bar > button[aria-pressed="true"] {
   background: var(--am-accent, currentColor);
   color: var(--am-bg);
   border-color: transparent;
+}
+
+.am-ext-bar > button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.am-ext-dirty {
+  color: var(--am-accent, currentColor);
+  font-size: 10px;
+  line-height: 1;
 }
 
 .am-ext-surface {
@@ -83,4 +95,15 @@
 .am-ext-surface .source-view {
   height: 100%;
   padding: 24px;
+}
+
+/* @amarantha/theme intentionally leaves prose width/centering to each host
+   (see packages/web/src/App.css and packages/vscode's WebviewApp.css, which
+   both declare this same rule locally) — content.css never picked up the
+   equivalent, so rich-mode text ran edge-to-edge instead of matching every
+   other host's centered reading column. */
+.amarantha-prose {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 24px;
 }

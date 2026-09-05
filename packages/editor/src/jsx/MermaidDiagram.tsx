@@ -5,9 +5,27 @@ import "./mermaid-diagram.css";
 // large dependency tree (katex, cytoscape, ...) for diagram types most
 // documents never use — bundling it eagerly added ~700KB to the main
 // chunk. Loaded once, on first actual use of a Mermaid component.
+type MermaidLoader = () => Promise<typeof import("mermaid")>;
+
+let customLoader: MermaidLoader | null = null;
+
+/**
+ * Overrides how the mermaid module gets loaded. Web/VS Code/desktop never
+ * call this and keep the plain `import("mermaid")` below — their bundlers
+ * emit that as a same-origin chunk a relative dynamic import can reach.
+ * A Chrome extension content script can't: it's a classic (non-module)
+ * script, so a bare `import("mermaid")` there resolves against the *host
+ * page's* origin, not the extension's own packaged files, and 404s. The
+ * extension calls this once at startup with a loader that fetches its own
+ * bundled chunk via `chrome.runtime.getURL(...)` instead.
+ */
+export function setMermaidLoader(loader: MermaidLoader): void {
+  customLoader = loader;
+}
+
 let mermaidModule: typeof import("mermaid") | null = null;
 async function loadMermaid() {
-  mermaidModule ??= await import("mermaid");
+  mermaidModule ??= await (customLoader ? customLoader() : import("mermaid"));
   return mermaidModule.default;
 }
 

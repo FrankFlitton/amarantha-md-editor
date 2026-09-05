@@ -4,8 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "build": "npm run build:content && npm run build:background && npm run build:options && npm run build:copy",
+    "build": "npm run build:content && npm run build:content-lazy && npm run build:background && npm run build:options && npm run build:copy",
     "build:content": "vite build --config vite.content.config.ts",
+    "build:content-lazy": "vite build --config vite.content-lazy.config.ts",
     "build:background": "vite build --config vite.background.config.ts",
     "build:options": "vite build --config vite.options.config.ts",
     "build:copy": "node scripts/copyStatic.mjs",

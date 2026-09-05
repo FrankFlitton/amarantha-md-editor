@@ -5,6 +5,7 @@ export type { InlineEditableTextProps } from "./InlineEditableText";
 export { SourceView } from "./SourceView";
 export type { SourceViewProps } from "./SourceView";
 export { createJsxComponentDescriptors } from "./jsx/descriptors";
+export { setMermaidLoader } from "./jsx/MermaidDiagram";
 export { AmaranthaJsxEditor } from "./jsx/AmaranthaJsxEditor";
 export { UnknownJsxEditor } from "./jsx/UnknownJsxEditor";
 export { createDocumentStore, selectDirty, selectHasFrontmatter, selectDisplayName } from "./store/documentStore";
