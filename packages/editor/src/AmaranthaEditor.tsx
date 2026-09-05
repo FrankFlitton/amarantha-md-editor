@@ -17,7 +17,7 @@ import {
   jsxPlugin,
   markdownShortcutPlugin,
 } from "@mdxeditor/editor";
-import type { Ref } from "react";
+import { useMemo, type Ref } from "react";
 import type { ComponentRegistry, FrontmatterFieldDefinition, ProseSize } from "@amarantha/core";
 import { SourceView } from "./SourceView";
 import { createJsxComponentDescriptors } from "./jsx/descriptors";
@@ -104,7 +104,52 @@ export function AmaranthaEditor({
     return <SourceView value={value} onChange={onChange} proseSize={proseSize} readOnly={readOnly} />;
   }
 
-  const jsxComponentDescriptors = componentRegistry ? createJsxComponentDescriptors(componentRegistry) : undefined;
+  // Memoized, not inline: RealmWithPlugins (@mdxeditor/editor) calls every
+  // plugin's `update(realm)` hook on *every* render, unconditionally — and
+  // gurx Cells are distinct-by-reference (`===`) by default, so publishing a
+  // brand-new-but-equivalent array/object every keystroke (an inline
+  // `plugins={[...]}` literal recreates all of it, `codeBlockEditorDescriptors`
+  // included) reads as "changed" and re-triggers whatever downstream consumes
+  // that cell — e.g. the code-block-editor-descriptor lookup that decides
+  // whether a fenced block renders as MermaidCodeBlockEditor or plain
+  // CodeMirror. Keeping the same references across renders when nothing
+  // actually changed lets that distinct-check skip the recompute instead.
+  const jsxComponentDescriptors = useMemo(
+    () => (componentRegistry ? createJsxComponentDescriptors(componentRegistry) : undefined),
+    [componentRegistry]
+  );
+
+  const plugins = useMemo(
+    () => [
+      toolbarPlugin({ toolbarContents: () => <AmaranthaToolbarContents /> }),
+      headingsPlugin(),
+      listsPlugin(),
+      quotePlugin(),
+      thematicBreakPlugin(),
+      linkPlugin(),
+      linkDialogPlugin(),
+      tablePlugin(),
+      codeBlockPlugin({
+        defaultCodeBlockLanguage: "",
+        // Higher than the built-in CodeMirror descriptor's priority (1,
+        // confirmed in @mdxeditor/editor's own source) so a ```mermaid
+        // fence gets the live diagram view instead of plain CodeMirror;
+        // everything else still falls through to that default.
+        codeBlockEditorDescriptors: [
+          { priority: 10, match: (language) => language === "mermaid", Editor: MermaidCodeBlockEditor },
+        ],
+      }),
+      codeMirrorPlugin({ codeBlockLanguages: CODE_BLOCK_LANGUAGES }),
+      imagePlugin({
+        imageUploadHandler: imageUploadHandler ?? null,
+        imagePreviewHandler: imagePreviewHandler ?? null,
+      }),
+      amaranthaFrontmatterPlugin({ fields: frontmatterFields, hidden: frontmatterHidden }),
+      ...(jsxComponentDescriptors ? [jsxPlugin({ jsxComponentDescriptors })] : []),
+      markdownShortcutPlugin(),
+    ],
+    [imageUploadHandler, imagePreviewHandler, jsxComponentDescriptors, frontmatterFields, frontmatterHidden]
+  );
 
   return (
     <div data-testid="amarantha-rich-editor">
@@ -118,34 +163,7 @@ export function AmaranthaEditor({
         // Vendored, selection-triggered toolbar (see ./toolbar) instead of upstream's
         // always-visible toolbarPlugin: it stays hidden until text is selected, which
         // is what keeps the minimalist canvas while still surfacing formatting controls.
-        plugins={[
-          toolbarPlugin({ toolbarContents: () => <AmaranthaToolbarContents /> }),
-          headingsPlugin(),
-          listsPlugin(),
-          quotePlugin(),
-          thematicBreakPlugin(),
-          linkPlugin(),
-          linkDialogPlugin(),
-          tablePlugin(),
-          codeBlockPlugin({
-            defaultCodeBlockLanguage: "",
-            // Higher than the built-in CodeMirror descriptor's priority (1,
-            // confirmed in @mdxeditor/editor's own source) so a ```mermaid
-            // fence gets the live diagram view instead of plain CodeMirror;
-            // everything else still falls through to that default.
-            codeBlockEditorDescriptors: [
-              { priority: 10, match: (language) => language === "mermaid", Editor: MermaidCodeBlockEditor },
-            ],
-          }),
-          codeMirrorPlugin({ codeBlockLanguages: CODE_BLOCK_LANGUAGES }),
-          imagePlugin({
-            imageUploadHandler: imageUploadHandler ?? null,
-            imagePreviewHandler: imagePreviewHandler ?? null,
-          }),
-          amaranthaFrontmatterPlugin({ fields: frontmatterFields, hidden: frontmatterHidden }),
-          ...(jsxComponentDescriptors ? [jsxPlugin({ jsxComponentDescriptors })] : []),
-          markdownShortcutPlugin(),
-        ]}
+        plugins={plugins}
       />
     </div>
   );
