@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Amarantha repository configuration",
+  "description": "Per-repo `amarantha.config.json`: theme opinion, JSX component registry, and known frontmatter fields. Keep in sync with AmaranthaConfig in packages/core/src/config.ts and ComponentDefinition/FrontmatterFieldDefinition in packages/core/src/types.ts.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "root": {
+      "type": "boolean",
+      "description": "Stop upward discovery at this file (ESLint-style), even short of the filesystem root."
+    },
+    "theme": {
+      "type": "string",
+      "enum": ["ember", "minimal", "solarized", "matrix", "cream"],
+      "description": "A palette opinion only — never pins light/dark mode, that stays a separate user preference."
+    },
+    "components": {
+      "type": "array",
+      "description": "Declarative per-repository JSX component registry.",
+      "items": { "$ref": "#/definitions/componentDefinition" }
+    },
+    "frontmatter": {
+      "type": "object",
+      "description": "Declares known frontmatter fields for this repo. Not mandatory for every document.",
+      "additionalProperties": { "$ref": "#/definitions/frontmatterFieldDefinition" }
+    },
+    "imagePrefix": {
+      "type": "string",
+      "description": "A directory, relative to this config file, to also try when a markdown image src doesn't resolve relative to the document itself. Covers Jamstack-style repos where content and public assets live in separate trees."
+    }
+  },
+  "definitions": {
+    "propType": {
+      "type": "string",
+      "enum": ["string", "number", "boolean", "enum", "expression"]
+    },
+    "componentPropDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "$ref": "#/definitions/propType" },
+        "required": { "type": "boolean" },
+        "values": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Allowed values, for type \"enum\"."
+        },
+        "description": { "type": "string" }
+      }
+    },
+    "componentDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "kind", "props"],
+      "properties": {
+        "name": { "type": "string" },
+        "displayName": { "type": "string" },
+        "kind": {
+          "type": "string",
+          "enum": ["flow", "text"],
+          "description": "Block (\"flow\") vs inline (\"text\") JSX element — matches MDXEditor's JsxComponentDescriptor.kind."
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/componentPropDefinition" }
+        },
+        "children": {
+          "type": "string",
+          "enum": ["none", "markdown", "mdx", "opaque"]
+        }
+      }
+    },
+    "frontmatterFieldDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "$ref": "#/definitions/propType" },
+        "required": { "type": "boolean" },
+        "values": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Allowed values, for type \"enum\"."
+        },
+        "description": { "type": "string" }
+      }
+    }
+  }
+}

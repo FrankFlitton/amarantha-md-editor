@@ -13,6 +13,7 @@ Amarantha is registered with `priority: "option"`, not `"default"` — it won't 
 ## What's wired up
 
 - Rich/Source toggle, per-repo `amarantha.config.json` discovery (component registry + frontmatter fields), pasted/dropped image handling (saved to an `assets/` folder next to the document), and font preferences (bundled Geist, curated Fontsource picks, or a custom Fontsource ID / system font).
+- JSON Schema-backed IntelliSense (autocomplete, hover docs, validation) when editing `amarantha.config.json` itself, via the `jsonValidation` contribution point in `package.json` pointing at `schemas/amarantha.config.schema.json`. Keep that schema in sync by hand with `AmaranthaConfig` (`packages/core/src/config.ts`) and `ComponentDefinition`/`FrontmatterFieldDefinition` (`packages/core/src/types.ts`) when those shapes change.
 - Colors follow VS Code's own active color theme (`src/webview/vscode-theme-adapter.css`) rather than Amarantha's own 10-theme picker — the more idiomatic choice for a VS Code extension.
 
 ## Not built here
