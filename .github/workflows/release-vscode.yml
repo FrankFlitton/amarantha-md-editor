@@ -1,0 +1,46 @@
+name: Release VS Code extension
+
+on:
+  push:
+    tags:
+      - "vscode-v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension
+        run: npm run build --workspace packages/vscode
+
+      - name: Package extension
+        run: npx @vscode/vsce package --no-dependencies -o amarantha-markdown-editor.vsix
+        working-directory: packages/vscode
+
+      - name: Publish to VS Code Marketplace
+        run: npx @vscode/vsce publish --packagePath amarantha-markdown-editor.vsix --pat "$VSCE_PAT"
+        working-directory: packages/vscode
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Amarantha for VS Code ${{ github.ref_name }}"
+          body: "See the [Marketplace listing](https://marketplace.visualstudio.com/items?itemName=amarantha.amarantha-markdown-editor) for install instructions, or download the .vsix below."
+          draft: true
+          prerelease: false
+          files: packages/vscode/amarantha-markdown-editor.vsix

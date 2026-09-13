@@ -1,12 +1,17 @@
 {
-  "name": "@amarantha/vscode",
+  "name": "amarantha-markdown-editor",
   "displayName": "Amarantha",
   "description": "A rich, source-preserving Markdown/MDX editor for VS Code.",
   "publisher": "amarantha",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "icon": "media/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FrankFlitton/amarantha-md-editor.git",
+    "directory": "packages/vscode"
+  },
   "galleryBanner": {
     "color": "#E0297E",
     "theme": "dark"
@@ -88,7 +93,7 @@
     "build": "npm run build:extension && npm run build:webview",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.webview.json",
     "test": "vitest run",
-    "package": "npm run build && npx @vscode/vsce package"
+    "package": "npm run build && npx @vscode/vsce package --no-dependencies"
   },
   "dependencies": {
     "@amarantha/core": "*",

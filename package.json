@@ -9,7 +9,7 @@
     "dev:web": "npm run dev --workspace @amarantha/web",
     "dev:docs": "npm run dev --workspace @amarantha/docs",
     "build": "npm run build --workspace @amarantha/desktop",
-    "build:vscode": "npm run build --workspace @amarantha/vscode",
+    "build:vscode": "npm run build --workspace packages/vscode",
     "build:extension": "npm run build --workspace @amarantha/extension",
     "build:docs": "npm run build --workspace @amarantha/docs",
     "test": "npm test --workspaces --if-present",
