@@ -1,4 +1,5 @@
 import { CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu } from "@tauri-apps/api/menu";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import type { FontPreference, FontSlot, ProseSize, ThemeFamily, ThemeModePreference } from "@amarantha/core";
 import { CURATED_FONTS, PROSE_SIZES, THEME_FAMILIES } from "@amarantha/theme";
 
@@ -216,7 +217,15 @@ export async function installNativeMenu(actions: NativeMenuActions): Promise<Nat
     items: [await PredefinedMenuItem.new({ item: "Minimize" }), await PredefinedMenuItem.new({ item: "Fullscreen" })],
   });
 
-  const menu = await Menu.new({ items: [appSubmenu, fileSubmenu, editSubmenu, viewSubmenu, windowSubmenu] });
+  const docsItem = await MenuItem.new({
+    text: "Amarantha Documentation",
+    action: () => void openUrl("https://docs.amarantha.app"),
+  });
+  const helpSubmenu = await Submenu.new({ text: "Help", items: [docsItem] });
+
+  const menu = await Menu.new({
+    items: [appSubmenu, fileSubmenu, editSubmenu, viewSubmenu, windowSubmenu, helpSubmenu],
+  });
   await menu.setAsAppMenu();
 
   return {

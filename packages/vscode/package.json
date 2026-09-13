@@ -7,6 +7,7 @@
   "version": "0.1.2",
   "type": "module",
   "icon": "media/icon.png",
+  "homepage": "https://docs.amarantha.app",
   "repository": {
     "type": "git",
     "url": "https://github.com/FrankFlitton/amarantha-md-editor.git",

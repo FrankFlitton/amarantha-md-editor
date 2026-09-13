@@ -188,6 +188,16 @@ function App() {
           <a
             className="web-toolbar-link"
             style={{ order: 11 }}
+            href="https://docs.amarantha.app"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Docs
+          </a>
+
+          <a
+            className="web-toolbar-link"
+            style={{ order: 12 }}
             href="https://github.com/FrankFlitton/amarantha-md-editor"
             target="_blank"
             rel="noreferrer"
@@ -197,7 +207,7 @@ function App() {
 
           <div
             className="web-toolbar-group web-get-amarantha"
-            style={{ order: 12 }}
+            style={{ order: 13 }}
             role="group"
             aria-label="Get Amarantha"
           >
@@ -242,7 +252,7 @@ function App() {
         <button
           type="button"
           className="web-toolbar-menu-toggle"
-          style={{ order: 13 }}
+          style={{ order: 14 }}
           aria-expanded={mobileMenuOpen}
           aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           onClick={() => setMobileMenuOpen((open) => !open)}

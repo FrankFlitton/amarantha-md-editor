@@ -7,7 +7,7 @@ workspace `amarantha.config.json`, and get real property editors for them
 instead of hand-edited JSX attributes. The file on disk stays exactly as
 you wrote it.
 
-**[Try the live web demo →](https://amarantha.app)**
+**[Try the live web demo →](https://amarantha.app)** · **[Docs →](https://docs.amarantha.app)**
 
 ## Usage
 
