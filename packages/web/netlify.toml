@@ -1,0 +1,26 @@
+# Netlify site for the amarantha.app live demo (@amarantha/web).
+#
+# This site's Netlify dashboard sets "Base directory" to packages/web —
+# every site in this monorepo has its own netlify.toml inside its own base
+# directory (see packages/docs/netlify.toml for the other one), and none at
+# the repo root, because a root-level netlify.toml is always found and
+# applied regardless of a site's own Base directory setting, which made two
+# sites sharing one root file impossible to tell apart.
+#
+# `npm ci` still has to run from the repo root (`cd ../..`), not from
+# packages/web — this is an npm workspaces monorepo with a single
+# package-lock.json at the root. @amarantha/web also depends on sibling
+# workspace packages (core/editor/mdx/source/theme) via npm workspaces
+# symlinks + Vite path aliases pointing at their raw src/ (no publish/build
+# step of their own), which only resolve when installed from the root.
+[build]
+  command = "cd ../.. && npm ci && npm run build --workspace @amarantha/web"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
