@@ -26,6 +26,7 @@ body,
 }
 
 .web-toolbar {
+  position: relative;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -35,8 +36,23 @@ body,
   font-size: 13px;
 }
 
+.web-toolbar-controls {
+  display: contents;
+}
+
 .web-toolbar-spacer {
   flex: 1;
+}
+
+.web-toolbar-menu-toggle {
+  display: none;
+  margin-left: auto;
+  padding: 5px 8px;
+  border: 1px solid var(--am-border);
+  border-radius: 6px;
+  background: var(--am-surface);
+  color: var(--am-text);
+  cursor: pointer;
 }
 
 .web-brand {
@@ -192,4 +208,61 @@ body,
   outline: none;
   background: transparent;
   color: inherit;
+}
+
+@media (max-width: 720px) {
+  .web-toolbar-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .web-toolbar-controls {
+    display: none;
+  }
+
+  .web-toolbar-controls.web-toolbar-controls--open {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    padding: 10px 12px 14px;
+    background: var(--am-bg);
+    border-bottom: 1px solid var(--am-border);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    z-index: 20;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+  }
+
+  .web-toolbar-controls--open .web-toolbar-spacer {
+    display: none;
+  }
+
+  .web-toolbar-controls--open .web-toolbar-group {
+    display: flex;
+  }
+
+  .web-toolbar-controls--open .web-toolbar-group button {
+    flex: 1;
+  }
+
+  .web-toolbar-controls--open > button,
+  .web-toolbar-controls--open > select,
+  .web-toolbar-controls--open > a,
+  .web-toolbar-controls--open > .web-toolbar-group {
+    width: 100%;
+  }
+
+  .web-toolbar-controls--open .web-toolbar-link {
+    text-align: center;
+  }
+
+  .web-toolbar-controls--open .web-toolbar-divider {
+    display: none;
+  }
 }

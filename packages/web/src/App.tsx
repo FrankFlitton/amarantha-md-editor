@@ -59,6 +59,7 @@ function App() {
   const [configOpen, setConfigOpen] = useState(false);
   const [configText, setConfigText] = useState(() => JSON.stringify(DEFAULT_CONFIG, null, 2));
   const [configError, setConfigError] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const registry = useMemo(() => createRegistry(config.components ?? []), [config]);
 
@@ -131,64 +132,88 @@ function App() {
       <div className="web-toolbar">
         <span className="web-brand">Amarantha</span>
 
-        <button type="button" onClick={() => fileInputRef.current?.click()}>
-          Open file
-        </button>
-        <input ref={fileInputRef} type="file" accept=".md,.mdx" hidden onChange={handleOpenFile} />
-        <button type="button" onClick={handleCopy}>
-          Copy markdown
-        </button>
-        <button type="button" onClick={handleDownload}>
-          Download
-        </button>
-        <button type="button" aria-pressed={configOpen} onClick={() => setConfigOpen((open) => !open)}>
-          Config
-        </button>
-
-        <span className="web-toolbar-spacer" />
-
-        <div className="web-toolbar-group" role="group" aria-label="Editor mode">
-          <button type="button" aria-pressed={mode === "rich"} onClick={() => setMode("rich")}>
-            Rich
-          </button>
-          <button type="button" aria-pressed={mode === "source"} onClick={() => setMode("source")}>
-            Source
-          </button>
-        </div>
-
-        <select value={family} onChange={(event) => setFamily(event.target.value as ThemeFamily)}>
-          {THEME_FAMILIES.map(({ family: familyOption, label }) => (
-            <option key={familyOption} value={familyOption}>
-              {label}
-            </option>
-          ))}
-        </select>
-
-        <button type="button" aria-pressed={dark} onClick={() => setDark((d) => !d)}>
-          {dark ? "Dark" : "Light"}
-        </button>
-
-        <span className="web-toolbar-divider" aria-hidden="true" />
-
-        <a
-          className="web-toolbar-link"
-          href="https://github.com/FrankFlitton/amarantha-md-editor"
-          target="_blank"
-          rel="noreferrer"
+        <button
+          type="button"
+          className="web-toolbar-menu-toggle"
+          aria-expanded={mobileMenuOpen}
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          onClick={() => setMobileMenuOpen((open) => !open)}
         >
-          GitHub
-        </a>
+          <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M2 5h16v2H2V5Zm0 4h16v2H2V9Zm0 4h16v2H2v-2Z"
+            />
+          </svg>
+        </button>
 
-        <div className="web-toolbar-group web-get-amarantha" role="group" aria-label="Get Amarantha">
-          <button type="button" disabled title="Mac app — coming soon">
-            Mac app
+        <div
+          className={`web-toolbar-controls${mobileMenuOpen ? " web-toolbar-controls--open" : ""}`}
+          onClick={(event) => {
+            if ((event.target as HTMLElement).closest("button, a, select")) {
+              setMobileMenuOpen(false);
+            }
+          }}
+        >
+          <button type="button" onClick={() => fileInputRef.current?.click()}>
+            Open file
           </button>
-          <button type="button" disabled title="VS Code extension — coming soon">
-            VS Code
+          <input ref={fileInputRef} type="file" accept=".md,.mdx" hidden onChange={handleOpenFile} />
+          <button type="button" onClick={handleCopy}>
+            Copy markdown
           </button>
-          <button type="button" disabled title="Chrome extension — coming soon">
-            Chrome
+          <button type="button" onClick={handleDownload}>
+            Download
           </button>
+          <button type="button" aria-pressed={configOpen} onClick={() => setConfigOpen((open) => !open)}>
+            Config
+          </button>
+
+          <span className="web-toolbar-spacer" />
+
+          <div className="web-toolbar-group" role="group" aria-label="Editor mode">
+            <button type="button" aria-pressed={mode === "rich"} onClick={() => setMode("rich")}>
+              Rich
+            </button>
+            <button type="button" aria-pressed={mode === "source"} onClick={() => setMode("source")}>
+              Source
+            </button>
+          </div>
+
+          <select value={family} onChange={(event) => setFamily(event.target.value as ThemeFamily)}>
+            {THEME_FAMILIES.map(({ family: familyOption, label }) => (
+              <option key={familyOption} value={familyOption}>
+                {label}
+              </option>
+            ))}
+          </select>
+
+          <button type="button" aria-pressed={dark} onClick={() => setDark((d) => !d)}>
+            {dark ? "Dark" : "Light"}
+          </button>
+
+          <span className="web-toolbar-divider" aria-hidden="true" />
+
+          <a
+            className="web-toolbar-link"
+            href="https://github.com/FrankFlitton/amarantha-md-editor"
+            target="_blank"
+            rel="noreferrer"
+          >
+            GitHub
+          </a>
+
+          <div className="web-toolbar-group web-get-amarantha" role="group" aria-label="Get Amarantha">
+            <button type="button" disabled title="Mac app — coming soon">
+              Mac app
+            </button>
+            <button type="button" disabled title="VS Code extension — coming soon">
+              VS Code
+            </button>
+            <button type="button" disabled title="Chrome extension — coming soon">
+              Chrome
+            </button>
+          </div>
         </div>
       </div>
 
