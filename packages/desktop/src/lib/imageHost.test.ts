@@ -97,5 +97,14 @@ describe("createImageHandlers", () => {
       expect(coreMocks.convertFileSrc).toHaveBeenCalledWith("/repo/content/assets/a.png");
       expect(src).toBe("asset://localhost//repo/content/assets/a.png");
     });
+
+    it("imagePreviewHandler resolves a percent-encoded src against a filename with a literal space", async () => {
+      fsMocks.exists.mockImplementation(async (candidate: string) => candidate === "/repo/content/design/logos/App Icon.svg");
+
+      const src = await handlers.imagePreviewHandler!("design/logos/App%20Icon.svg");
+
+      expect(coreMocks.convertFileSrc).toHaveBeenCalledWith("/repo/content/design/logos/App Icon.svg");
+      expect(src).toBe("asset://localhost//repo/content/design/logos/App Icon.svg");
+    });
   });
 });

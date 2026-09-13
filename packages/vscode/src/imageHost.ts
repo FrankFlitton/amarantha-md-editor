@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as vscode from "vscode";
-import { isRemoteOrDataUrl, sanitizeAssetFileName } from "@amarantha/core";
+import { decodeSrcVariants, isRemoteOrDataUrl, sanitizeAssetFileName } from "@amarantha/core";
 
 /** file-name -> a collision-resistant, filesystem-safe asset file name
  *  (mirrors packages/desktop/src/lib/imageHost.ts's toAssetFileName). */
@@ -51,6 +51,8 @@ async function pathExists(candidate: string): Promise<boolean> {
  * markdown content and public assets live in separate trees (e.g. a
  * `/img/foo.png` src in markdown under `content/`, physically at
  * `<repo>/src/public/img/foo.png` — `imagePrefix: "src/public"` finds it).
+ * Within each location, also tries the percent-decoded form of src (e.g. a
+ * `%20` in the markdown link matching a literal space in the filename).
  * Falls back to the plain document-relative candidate if nothing resolves,
  * so this is never worse than the single-candidate behavior it replaces.
  */
@@ -62,11 +64,14 @@ export async function resolveImagePreviewSrc(
 ): Promise<string> {
   if (isRemoteOrDataUrl(src)) return src;
 
+  const srcVariants = decodeSrcVariants(src);
   const docRelative = path.resolve(path.dirname(docFsPath), src);
-  const candidates = [docRelative];
+  const candidates = srcVariants.map((variant) => path.resolve(path.dirname(docFsPath), variant));
   if (options.imagePrefix && options.imagePrefixDir) {
-    const stripped = src.replace(/^[/\\]+/, "");
-    candidates.push(path.resolve(options.imagePrefixDir, options.imagePrefix, stripped));
+    for (const variant of srcVariants) {
+      const stripped = variant.replace(/^[/\\]+/, "");
+      candidates.push(path.resolve(options.imagePrefixDir, options.imagePrefix, stripped));
+    }
   }
 
   let resolved = docRelative;

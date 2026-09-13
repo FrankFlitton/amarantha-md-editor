@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { arrayBufferToBase64, isRemoteOrDataUrl, sanitizeAssetFileName } from "./media";
+import { arrayBufferToBase64, decodeSrcVariants, isRemoteOrDataUrl, sanitizeAssetFileName } from "./media";
 
 describe("isRemoteOrDataUrl", () => {
   it("recognizes http(s) urls", () => {
@@ -36,6 +36,23 @@ describe("sanitizeAssetFileName", () => {
 
   it("falls back for empty input", () => {
     expect(sanitizeAssetFileName("   ")).toBe("image");
+  });
+});
+
+describe("decodeSrcVariants", () => {
+  it("adds the percent-decoded form when it differs", () => {
+    expect(decodeSrcVariants("./design/logos/App%20Icon.svg")).toEqual([
+      "./design/logos/App%20Icon.svg",
+      "./design/logos/App Icon.svg",
+    ]);
+  });
+
+  it("returns a single candidate when there's nothing to decode", () => {
+    expect(decodeSrcVariants("assets/photo.png")).toEqual(["assets/photo.png"]);
+  });
+
+  it("falls back to just the raw src on a malformed escape", () => {
+    expect(decodeSrcVariants("assets/100%.png")).toEqual(["assets/100%.png"]);
   });
 });
 

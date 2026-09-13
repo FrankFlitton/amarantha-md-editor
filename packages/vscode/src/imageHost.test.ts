@@ -46,6 +46,19 @@ describe("resolveImagePreviewSrc", () => {
     expect(result).toBe(`vscode-webview://${path.join(docDir, "photo.png")}`);
   });
 
+  it("resolves a percent-encoded src against a filename with a literal space", async () => {
+    const logosDir = path.join(repoDir, "design", "logos");
+    await fs.mkdir(logosDir, { recursive: true });
+    await fs.writeFile(path.join(logosDir, "App Icon.svg"), "x");
+
+    const result = await resolveImagePreviewSrc(
+      path.join(repoDir, "README.md"),
+      "./design/logos/App%20Icon.svg",
+      fakeWebview() as never
+    );
+    expect(result).toBe(`vscode-webview://${path.join(logosDir, "App Icon.svg")}`);
+  });
+
   it("falls back to the imagePrefix candidate when the doc-relative path doesn't exist (the Jamstack case)", async () => {
     const docDir = path.join(repoDir, "content", "projects");
     const publicDir = path.join(repoDir, "src", "public", "img", "projects", "korg-wavestate");

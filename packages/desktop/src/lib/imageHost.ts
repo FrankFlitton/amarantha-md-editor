@@ -1,7 +1,7 @@
 import { exists, mkdir, writeFile } from "@tauri-apps/plugin-fs";
 import { dirname, join } from "@tauri-apps/api/path";
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { arrayBufferToBase64, isRemoteOrDataUrl, sanitizeAssetFileName } from "@amarantha/core";
+import { arrayBufferToBase64, decodeSrcVariants, isRemoteOrDataUrl, sanitizeAssetFileName } from "@amarantha/core";
 import type { ImagePreviewHandler, ImageUploadHandler } from "@mdxeditor/editor";
 
 export interface ImageHandlers {
@@ -42,7 +42,14 @@ export function createImageHandlers(docUri: string | null): ImageHandlers {
     imagePreviewHandler: async (src: string): Promise<string> => {
       if (isRemoteOrDataUrl(src) || !docUri) return src;
       const dir = await dirname(docUri);
-      const absolute = await join(dir, src);
+      let absolute = await join(dir, src);
+      for (const variant of decodeSrcVariants(src)) {
+        const candidate = await join(dir, variant);
+        if (await exists(candidate)) {
+          absolute = candidate;
+          break;
+        }
+      }
       return convertFileSrc(absolute);
     },
   };
