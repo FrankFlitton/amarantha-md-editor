@@ -1,0 +1,18 @@
+# Netlify site for docs.amarantha.app.
+#
+# This file only takes effect if this site's Netlify dashboard has "Base
+# directory" set to `packages/docs` — Netlify looks for netlify.toml inside
+# the configured base directory instead of the repo root once one is set,
+# which is how a monorepo runs multiple independent Netlify sites off one
+# repo. Without that setting, Netlify falls back to the repo-root
+# netlify.toml (@amarantha/web's config) and builds the wrong package.
+#
+# `npm ci` still has to run from the repo root (`cd ../..`), not from
+# packages/docs — this is an npm workspaces monorepo with a single
+# package-lock.json at the root; @amarantha/docs has no lockfile of its own.
+[build]
+  command = "cd ../.. && npm ci && npm run build --workspace @amarantha/docs"
+  publish = ".vitepress/dist"
+
+[build.environment]
+  NODE_VERSION = "22"

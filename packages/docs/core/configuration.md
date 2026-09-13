@@ -26,7 +26,9 @@ interface AmaranthaConfig {
 ```
 
 See [Custom Components](/core/custom-components) for `ComponentDefinition`
-and [Frontmatter](/core/frontmatter) for `FrontmatterFieldDefinition`.
+and [Frontmatter](/core/frontmatter) for `FrontmatterFieldDefinition`, or the
+[Config Schema Reference](/core/config-schema) for the full field-by-field
+spec and a worked example.
 
 ## Discovery
 

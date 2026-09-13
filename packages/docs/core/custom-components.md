@@ -29,7 +29,8 @@ interface ComponentPropDefinition {
 
 `kind` matches MDXEditor's own `JsxComponentDescriptor.kind` — `"flow"` for a
 block-level element like `<Mermaid>`, `"text"` for something that sits inline
-with prose.
+with prose. See the [Config Schema Reference](/core/config-schema) for every
+field, the `expression` prop type, and a full worked example.
 
 ## Registries
 

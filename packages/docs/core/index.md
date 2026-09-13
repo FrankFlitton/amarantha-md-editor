@@ -12,6 +12,8 @@ contract.
   round-trip back to Markdown without rewriting formatting you didn't touch.
 - **[Configuration](/core/configuration)** — `amarantha.config.json`, and how
   it's discovered across a repo.
+- **[Config Schema Reference](/core/config-schema)** — the full field-by-field
+  JSON Schema for `amarantha.config.json`.
 - **[Custom Components](/core/custom-components)** — declaring JSX/MDX
   components so they render inline in the rich view.
 - **[Frontmatter](/core/frontmatter)** — source-preserving YAML frontmatter

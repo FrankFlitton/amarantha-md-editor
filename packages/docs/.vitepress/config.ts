@@ -30,6 +30,7 @@ export default defineConfig({
           { text: "Overview", link: "/core/" },
           { text: "Source-Preserving Editing", link: "/core/source-preserving" },
           { text: "Configuration", link: "/core/configuration" },
+          { text: "Config Schema Reference", link: "/core/config-schema" },
           { text: "Custom Components", link: "/core/custom-components" },
           { text: "Frontmatter", link: "/core/frontmatter" },
           { text: "Themes & Fonts", link: "/core/themes-and-fonts" },
