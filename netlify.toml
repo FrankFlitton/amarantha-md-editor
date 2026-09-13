@@ -1,18 +1,20 @@
 # Netlify site for the amarantha.app live demo (@amarantha/web).
 #
-# `base` stays at the repo root (not packages/web) because @amarantha/web
-# depends on sibling workspace packages (core/editor/mdx/source/theme) via
-# npm workspaces symlinks + Vite path aliases pointing at their raw src/ —
-# there is no publish/build step for those packages. Installing from
-# packages/web alone would leave those workspace links unresolved.
+# Effective base stays at the repo root (not packages/web) because
+# @amarantha/web depends on sibling workspace packages
+# (core/editor/mdx/source/theme) via npm workspaces symlinks + Vite path
+# aliases pointing at their raw src/ — there is no publish/build step for
+# those packages. Installing from packages/web alone would leave those
+# workspace links unresolved.
 #
-# The docs.amarantha.app site (@amarantha/docs) is a separate Netlify site
-# with its own config at packages/docs/netlify.toml, read instead of this
-# file because that site's dashboard sets "Base directory" to
-# `packages/docs`. This file is only ever used for a site whose base
-# directory is unset/root — i.e. the web demo.
+# Deliberately no `base = "."` here: Netlify always reads the repo-root
+# netlify.toml first, and an explicit `base` in it overrides every site's
+# own dashboard "Base directory" setting — that broke the separate
+# docs.amarantha.app site (@amarantha/docs), whose dashboard sets Base
+# directory to `packages/docs` so it reads packages/docs/netlify.toml
+# instead of this file. Root (".") is the default when unset anyway, so
+# omitting it changes nothing for this site.
 [build]
-  base = "."
   command = "npm ci && npm run build --workspace @amarantha/web"
   publish = "packages/web/dist"
 
