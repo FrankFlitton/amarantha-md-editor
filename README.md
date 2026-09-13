@@ -4,7 +4,7 @@
 
 # Amarantha
 
-A rich, source-preserving Markdown/MDX editor. Edit as rich text: headings, bold, lists, links, custom JSX components, and the file on disk staysexactly as you wrote it. No silent reformatting on save.&#x20;
+A rich editor for Markdown/MDX repositories that actually understands the custom components you've already built — not just headings and lists. Point it at a repo, declare your `<Mermaid>`, `<YouTube>`, or `<UserJourney>` blocks once, and get real property editors for them instead of hand-edited JSX attributes. The file on disk stays exactly as you wrote it.
 
 [Try the live demo →](https://amarantha.app)
 
@@ -19,11 +19,11 @@ A rich, source-preserving Markdown/MDX editor. Edit as rich text: headings, bold
 
 ## What makes it different
 
-* **Source-preserving.** Formatting you didn't touch — list marker style, quote style, line wrapping — isn't rewritten out from under you.
-* **Custom components, inline.** MDX components like diagrams or embeds render right alongside your prose, driven by a simple JSON config
-  (`amarantha.config.json`) rather than hardcoded support.
-* **One editor, several homes.** The same core editing engine runs in a
-  desktop app, VS Code, a Chrome extension, and the browser demo above.
+* **Real editors for your own components, not just text.** Declare a component's props once in a per-repo `amarantha.config.json` — string, number, boolean, enum, or raw expression — and Amarantha renders a proper field for each one (checkboxes, dropdowns, number inputs) right where the component sits in your prose. No hardcoded support for specific components, and nothing to build per-project: the registry is just JSON.
+* **Untouched stays untouched.** Any component you haven't described — or don't want to — round-trips exactly as written. Amarantha never flattens unknown JSX to generic HTML or drops what it doesn't recognize.
+* **Source-preserving by default.** Formatting you didn't touch — list marker style, quote style, line wrapping — isn't rewritten out from under you on save. Markdown editing that doesn't fight your diffs.
+* **One editor, everywhere your content lives.** The same core editing engine runs in a desktop app, a VS Code extension, a Chrome extension, and the browser demo above — the way you write doesn't depend on where you happen to be.
+* **Repo-aware theming and frontmatter, from the same config.** Ten built-in palettes (light + dark, independent of your OS setting), any typeface on Fontsource, and a structured form for whatever frontmatter fields your repo defines — instead of raw YAML.
 
 ## Developing locally
 

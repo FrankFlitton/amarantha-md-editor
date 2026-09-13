@@ -1,7 +1,7 @@
 {
   "name": "amarantha-markdown-editor",
   "displayName": "Amarantha",
-  "description": "A rich, source-preserving Markdown/MDX editor for VS Code.",
+  "description": "A rich Markdown/MDX editor with real property editors for your repo's own custom components.",
   "publisher": "amarantha",
   "private": true,
   "version": "0.1.2",

@@ -10,23 +10,31 @@ title: "Welcome to Amarantha"
 tags: ["getting-started"]
 ---
 
-# A markdown editor that doesn't rewrite your files
+# A markdown editor that understands your own components
 
 Amarantha edits Markdown and MDX **as rich text** — headings, bold and
 italics, lists, links — while keeping the file underneath exactly as you
 wrote it. No surprise reformatting the next time you save.
 
-Try it out:
-
-- Select this paragraph to see the floating formatting toolbar.
-- Switch to **Source** (top right) to see the raw Markdown behind this page.
-- Pick a theme from the dropdown, or toggle dark mode.
-
-It also renders custom components inline, right alongside your prose:
+But the interesting part is below: a real **property editor**, generated
+from this repo's \`amarantha.config.json\` rather than hand-edited JSX
+attributes. Edit the "title" field directly, or hit **Edit** to swap the
+rendered diagram for its raw chart source:
 
 <Mermaid chart={\`graph TD
   Write --> Edit
   Edit --> Ship\`} title="How it fits together" />
+
+Open **Config** (top right) to see the JSON that describes \`<Mermaid>\` —
+and every other custom component in this demo — as fields Amarantha knows
+how to render.
+
+Try it out:
+
+- Edit the Mermaid block's title above, or click **Edit** to change its chart.
+- Select this paragraph to see the floating formatting toolbar.
+- Switch to **Source** (top right) to see the raw Markdown behind this page.
+- Pick a theme from the dropdown, or toggle dark mode.
 
 Use **Open file** above to try it on a Markdown or MDX file of your own.
 `;

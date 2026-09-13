@@ -1,8 +1,11 @@
 # Amarantha for VS Code
 
-A rich, source-preserving Markdown/MDX editor for VS Code. Edit as rich
-text — headings, bold, lists, links, custom JSX components — and the file
-on disk stays exactly as you wrote it. No silent reformatting on save.
+A rich editor for Markdown/MDX repositories that actually understands the
+custom components you've already built — not just headings and lists.
+Declare your `<Mermaid>`, `<YouTube>`, or `<UserJourney>` blocks once in a
+workspace `amarantha.config.json`, and get real property editors for them
+instead of hand-edited JSX attributes. The file on disk stays exactly as
+you wrote it.
 
 **[Try the live web demo →](https://amarantha.app)**
 
@@ -19,13 +22,20 @@ won't replace VS Code's built-in text editor automatically.
 
 ## Features
 
-- **Source-preserving.** Formatting you didn't touch — list marker style,
-  quote style, line wrapping — isn't rewritten out from under you.
-- **Custom components, inline.** MDX components like diagrams or embeds
-  render right alongside your prose, driven by a simple JSON config
-  (`amarantha.config.json` at your workspace root) rather than hardcoded
-  support. Editing that config file gets autocomplete, hover docs, and
-  validation for free.
+- **Real editors for your own components, not just text.** Declare a
+  component's props once in `amarantha.config.json` at your workspace
+  root — string, number, boolean, enum, or raw expression — and Amarantha
+  renders a proper field for each one (checkboxes, dropdowns, number
+  inputs) right where the component sits in your prose. Editing that
+  config file itself gets autocomplete, hover docs, and validation for
+  free.
+- **Untouched stays untouched.** Any component you haven't described — or
+  don't want to — round-trips exactly as written. Amarantha never
+  flattens unknown JSX to generic HTML or drops what it doesn't
+  recognize.
+- **Source-preserving by default.** Formatting you didn't touch — list
+  marker style, quote style, line wrapping — isn't rewritten out from
+  under you on save.
 - **Native VS Code integration.** Undo/redo, the dirty indicator, and
   Ctrl/Cmd+S all come from VS Code itself — the open document is always
   the source of truth.
