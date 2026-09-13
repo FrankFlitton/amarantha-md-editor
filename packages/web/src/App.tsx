@@ -196,9 +196,14 @@ function App() {
             <button type="button" disabled title="Mac app — coming soon">
               Mac app
             </button>
-            <button type="button" disabled title="VS Code extension — coming soon">
+            <a
+              href="https://marketplace.visualstudio.com/items?itemName=Amarantha.amarantha-markdown-editor"
+              target="_blank"
+              rel="noreferrer"
+              title="Amarantha on the VS Code Marketplace"
+            >
               VS Code
-            </button>
+            </a>
             <button type="button" disabled title="Chrome extension — coming soon">
               Chrome
             </button>

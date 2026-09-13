@@ -16,7 +16,7 @@ exactly as you wrote it. No silent reformatting on save.
 |---|---|
 | 🌐 Web demo | Live at [amarantha.app](https://amarantha.app) |
 | 🖥️ Desktop app (macOS / Windows) | In progress — [releases](https://github.com/FrankFlitton/amarantha-md-editor/releases) |
-| 🧩 VS Code extension | [Marketplace](https://marketplace.visualstudio.com/items?itemName=amarantha.amarantha-markdown-editor) |
+| 🧩 VS Code extension | [Marketplace](https://marketplace.visualstudio.com/items?itemName=Amarantha.amarantha-markdown-editor) |
 | 🌎 Chrome extension | Not yet published |
 
 ## What makes it different

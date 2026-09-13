@@ -100,13 +100,15 @@ body,
   overflow: hidden;
 }
 
-.web-toolbar-group button {
+.web-toolbar-group button,
+.web-toolbar-group a {
   border: none;
   border-radius: 0;
 }
 
 .web-toolbar button,
-.web-toolbar select {
+.web-toolbar select,
+.web-toolbar-group a {
   font: inherit;
   padding: 5px 10px;
   border: 1px solid var(--am-border);
@@ -114,9 +116,13 @@ body,
   background: var(--am-surface);
   color: var(--am-text);
   cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
 }
 
-.web-toolbar button:hover {
+.web-toolbar button:hover,
+.web-toolbar-group a:hover {
   background: var(--am-border);
 }
 
