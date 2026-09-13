@@ -1,32 +1,28 @@
 <p align="center">
-  <img src="design/logos/App%20Icon.svg" alt="Amarantha" width="120" />
+  <img width="120" alt="Amarantha" src="./design/logos/App%20Icon.svg" />
 </p>
 
 # Amarantha
 
-A rich, source-preserving Markdown/MDX editor. Edit as rich text — headings,
-bold, lists, links, custom JSX components — and the file on disk stays
-exactly as you wrote it. No silent reformatting on save.
+A rich, source-preserving Markdown/MDX editor. Edit as rich text: headings, bold, lists, links, custom JSX components, and the file on disk staysexactly as you wrote it. No silent reformatting on save.&#x20;
 
-**[Try the live demo →](https://amarantha.app)**
+[Try the live demo →](https://amarantha.app)
 
 ## Where to get it
 
-| Surface | Status |
-|---|---|
-| 🌐 Web demo | Live at [amarantha.app](https://amarantha.app) |
-| 🖥️ Desktop app (macOS / Windows) | In progress — [releases](https://github.com/FrankFlitton/amarantha-md-editor/releases) |
-| 🧩 VS Code extension | [Marketplace](https://marketplace.visualstudio.com/items?itemName=Amarantha.amarantha-markdown-editor) |
-| 🌎 Chrome extension | Not yet published |
+| Surface                           | Status                                                                                                         |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 🌐 Web demo                       | Live at [Amarantha.app](https://amarantha.app)                                                                 |
+| 🖥️ Desktop app (macOS / Windows) | [GitHub Releases](https://github.com/FrankFlitton/amarantha-md-editor/releases)                                |
+| 🧩 VS Code extension              | VS Code [Marketplace](https://marketplace.visualstudio.com/items?itemName=Amarantha.amarantha-markdown-editor) |
+| 🌎 Chrome extension               | In Progress                                                                                                    |
 
 ## What makes it different
 
-- **Source-preserving.** Formatting you didn't touch — list marker style,
-  quote style, line wrapping — isn't rewritten out from under you.
-- **Custom components, inline.** MDX components like diagrams or embeds
-  render right alongside your prose, driven by a simple JSON config
+* **Source-preserving.** Formatting you didn't touch — list marker style, quote style, line wrapping — isn't rewritten out from under you.
+* **Custom components, inline.** MDX components like diagrams or embeds render right alongside your prose, driven by a simple JSON config
   (`amarantha.config.json`) rather than hardcoded support.
-- **One editor, several homes.** The same core editing engine runs in a
+* **One editor, several homes.** The same core editing engine runs in a
   desktop app, VS Code, a Chrome extension, and the browser demo above.
 
 ## Developing locally
@@ -45,5 +41,5 @@ architecture notes.
 
 ## Contributing
 
-Issues and PRs welcome — this project is early and moving fast, so it's
+Issues and PRs welcome. This project is early and moving fast, so it's
 worth opening an issue before a large change.
