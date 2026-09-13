@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="design/logos/App%20Icon.svg" alt="Amarantha" width="120" />
+</p>
+
 # Amarantha
 
 A rich, source-preserving Markdown/MDX editor. Edit as rich text — headings,

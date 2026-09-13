@@ -5,7 +5,11 @@ export default defineConfig({
   description: "A rich, source-preserving Markdown/MDX editor.",
   cleanUrls: true,
 
+  head: [["link", { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }]],
+
   themeConfig: {
+    logo: "/logo.svg",
+
     nav: [
       { text: "Guide", link: "/introduction" },
       { text: "Core", link: "/core/" },

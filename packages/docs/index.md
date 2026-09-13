@@ -5,6 +5,9 @@ hero:
   name: Amarantha
   text: A source-preserving Markdown/MDX editor
   tagline: Edit as rich text — the file on disk stays exactly as you wrote it.
+  image:
+    src: /logo.svg
+    alt: Amarantha
   actions:
     - theme: brand
       text: What is Amarantha?

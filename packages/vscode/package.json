@@ -6,6 +6,11 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#E0297E",
+    "theme": "dark"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
