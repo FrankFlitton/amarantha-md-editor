@@ -1,0 +1,24 @@
+/**
+ * Amarantha docs brand color.
+ */
+:root {
+  --vp-c-brand-1: #e0297e;
+  --vp-c-brand-2: color-mix(in srgb, #e0297e 85%, black);
+  --vp-c-brand-3: color-mix(in srgb, #e0297e 70%, black);
+  --vp-c-brand-soft: color-mix(in srgb, #e0297e 14%, transparent);
+
+  --vp-c-text-1-brand: var(--vp-c-brand-1);
+}
+
+.dark {
+  --vp-c-brand-1: #e0297e;
+  --vp-c-brand-2: color-mix(in srgb, #e0297e 80%, white);
+  --vp-c-brand-3: color-mix(in srgb, #e0297e 60%, white);
+  --vp-c-brand-soft: color-mix(in srgb, #e0297e 16%, transparent);
+}
+
+.VPHero .name .clip {
+  background: -webkit-linear-gradient(120deg, #e0297e 30%, #9b2a63);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
