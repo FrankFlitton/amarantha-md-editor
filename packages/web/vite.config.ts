@@ -4,6 +4,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { fontDisplayOptional } from "../theme/vite-plugin-font-display-optional";
+import { preloadMermaidChunk } from "./vite-plugin-preload-mermaid";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -17,7 +18,7 @@ export default defineConfig({
   // fontDisplayOptional rewrites @fontsource's hardcoded `font-display:
   // swap` to `optional` — see that file for why "swap" is the actual cause
   // of the visible fallback-font-then-Geist flash on first paint.
-  plugins: [react(), tailwindcss(), fontDisplayOptional()],
+  plugins: [react(), tailwindcss(), fontDisplayOptional(), preloadMermaidChunk()],
 
   resolve: {
     alias: [
