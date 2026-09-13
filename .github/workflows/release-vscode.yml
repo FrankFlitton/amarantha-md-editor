@@ -31,7 +31,18 @@ jobs:
         working-directory: packages/vscode
 
       - name: Publish to VS Code Marketplace
-        run: npx @vscode/vsce publish --packagePath amarantha-markdown-editor.vsix --pat "$VSCE_PAT"
+        # The Marketplace gallery API is known to intermittently hang for ~3min
+        # before vsce reports "Request timeout: /_apis/gallery" - vsce itself
+        # doesn't retry timeouts (microsoft/vscode-vsce#926), so retry here.
+        run: |
+          for attempt in 1 2 3; do
+            if npx @vscode/vsce publish --packagePath amarantha-markdown-editor.vsix --pat "$VSCE_PAT"; then
+              exit 0
+            fi
+            echo "Publish attempt $attempt failed, retrying in 30s..."
+            sleep 30
+          done
+          exit 1
         working-directory: packages/vscode
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
