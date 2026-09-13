@@ -59,6 +59,7 @@ function App() {
   const [configOpen, setConfigOpen] = useState(false);
   const [configText, setConfigText] = useState(() => JSON.stringify(DEFAULT_CONFIG, null, 2));
   const [configError, setConfigError] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const registry = useMemo(() => createRegistry(config.components ?? []), [config]);
 
@@ -129,25 +130,85 @@ function App() {
   return (
     <div className={`web-shell amarantha-app ${dark ? "dark" : "light-theme"}`} data-theme={currentThemeId}>
       <div className="web-toolbar">
-        <span className="web-brand">Amarantha</span>
+        <span className="web-brand" style={{ order: 1 }}>
+          Amarantha
+        </span>
 
-        <button type="button" onClick={() => fileInputRef.current?.click()}>
-          Open file
-        </button>
-        <input ref={fileInputRef} type="file" accept=".md,.mdx" hidden onChange={handleOpenFile} />
-        <button type="button" onClick={handleCopy}>
-          Copy markdown
-        </button>
-        <button type="button" onClick={handleDownload}>
-          Download
-        </button>
-        <button type="button" aria-pressed={configOpen} onClick={() => setConfigOpen((open) => !open)}>
-          Config
-        </button>
+        <div
+          className={`web-toolbar-controls${mobileMenuOpen ? " web-toolbar-controls--open" : ""}`}
+          onClick={(event) => {
+            if ((event.target as HTMLElement).closest("button, a, select")) {
+              setMobileMenuOpen(false);
+            }
+          }}
+        >
+          <button type="button" style={{ order: 2 }} onClick={() => fileInputRef.current?.click()}>
+            Open file
+          </button>
+          <input ref={fileInputRef} type="file" accept=".md,.mdx" hidden onChange={handleOpenFile} />
+          <button type="button" style={{ order: 3 }} onClick={handleCopy}>
+            Copy markdown
+          </button>
+          <button type="button" style={{ order: 4 }} onClick={handleDownload}>
+            Download
+          </button>
+          <button
+            type="button"
+            style={{ order: 5 }}
+            aria-pressed={configOpen}
+            onClick={() => setConfigOpen((open) => !open)}
+          >
+            Config
+          </button>
 
-        <span className="web-toolbar-spacer" />
+          <span className="web-toolbar-spacer" style={{ order: 6 }} />
 
-        <div className="web-toolbar-group" role="group" aria-label="Editor mode">
+          <select
+            style={{ order: 8 }}
+            value={family}
+            onChange={(event) => setFamily(event.target.value as ThemeFamily)}
+          >
+            {THEME_FAMILIES.map(({ family: familyOption, label }) => (
+              <option key={familyOption} value={familyOption}>
+                {label}
+              </option>
+            ))}
+          </select>
+
+          <span className="web-toolbar-divider" style={{ order: 10 }} aria-hidden="true" />
+
+          <a
+            className="web-toolbar-link"
+            style={{ order: 11 }}
+            href="https://github.com/FrankFlitton/amarantha-md-editor"
+            target="_blank"
+            rel="noreferrer"
+          >
+            GitHub
+          </a>
+
+          <div
+            className="web-toolbar-group web-get-amarantha"
+            style={{ order: 12 }}
+            role="group"
+            aria-label="Get Amarantha"
+          >
+            <button type="button" disabled title="Mac app — coming soon">
+              Mac app
+            </button>
+            <button type="button" disabled title="VS Code extension — coming soon">
+              VS Code
+            </button>
+            <button type="button" disabled title="Chrome extension — coming soon">
+              Chrome
+            </button>
+          </div>
+        </div>
+
+        {/* Kept outside .web-toolbar-controls (flex `order` instead of DOM
+            position) so these stay reachable on mobile without opening the
+            menu — they're the controls people reach for most while editing. */}
+        <div className="web-toolbar-group" style={{ order: 7 }} role="group" aria-label="Editor mode">
           <button type="button" aria-pressed={mode === "rich"} onClick={() => setMode("rich")}>
             Rich
           </button>
@@ -156,40 +217,27 @@ function App() {
           </button>
         </div>
 
-        <select value={family} onChange={(event) => setFamily(event.target.value as ThemeFamily)}>
-          {THEME_FAMILIES.map(({ family: familyOption, label }) => (
-            <option key={familyOption} value={familyOption}>
-              {label}
-            </option>
-          ))}
-        </select>
-
-        <button type="button" aria-pressed={dark} onClick={() => setDark((d) => !d)}>
+        <button
+          type="button"
+          style={{ order: 9 }}
+          aria-pressed={dark}
+          onClick={() => setDark((d) => !d)}
+        >
           {dark ? "Dark" : "Light"}
         </button>
 
-        <span className="web-toolbar-divider" aria-hidden="true" />
-
-        <a
-          className="web-toolbar-link"
-          href="https://github.com/FrankFlitton/amarantha-md-editor"
-          target="_blank"
-          rel="noreferrer"
+        <button
+          type="button"
+          className="web-toolbar-menu-toggle"
+          style={{ order: 13 }}
+          aria-expanded={mobileMenuOpen}
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          onClick={() => setMobileMenuOpen((open) => !open)}
         >
-          GitHub
-        </a>
-
-        <div className="web-toolbar-group web-get-amarantha" role="group" aria-label="Get Amarantha">
-          <button type="button" disabled title="Mac app — coming soon">
-            Mac app
-          </button>
-          <button type="button" disabled title="VS Code extension — coming soon">
-            VS Code
-          </button>
-          <button type="button" disabled title="Chrome extension — coming soon">
-            Chrome
-          </button>
-        </div>
+          <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
+            <path fill="currentColor" d="M2 5h16v2H2V5Zm0 4h16v2H2V9Zm0 4h16v2H2v-2Z" />
+          </svg>
+        </button>
       </div>
 
       {configOpen && (
