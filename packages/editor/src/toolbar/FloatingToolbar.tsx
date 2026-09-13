@@ -14,6 +14,17 @@ const MARGIN = 8
 // portal container element (see primitives/DialogButton.tsx, select.tsx).
 const LEXICAL_EDITOR_ATTR_SELECTOR = '[data-lexical-editor="true"]'
 
+// Nested editors MDXEditor mounts for a custom node's own chrome (the JSX/Mermaid
+// props panel, the frontmatter YAML panel) still carry `data-lexical-editor="true"`
+// on their root — that attribute alone can't tell real editable MDX content apart
+// from a node's own non-editable controls (its "Edit"/"Done" buttons, labels, etc).
+// Those controls are universally wrapped in `contentEditable={false}` (the standard
+// way to opt a subtree out of Lexical editing), so walking up to the *nearest*
+// `[contenteditable]` ancestor and checking its value is a general, per-node-type-
+// agnostic way to exclude them: any future custom node's own UI gets the same
+// exclusion for free just by following that existing convention.
+const CONTENT_EDITABLE_SELECTOR = '[contenteditable]'
+
 /**
  * `document.getSelection()`/`window.getSelection()` only ever reflect a
  * selection living in the *light* DOM — a selection made inside an open
@@ -49,8 +60,9 @@ function useSelectionRect() {
       const anchorNode = selection?.anchorNode ?? null
       const anchorElement = anchorNode ? (anchorNode.nodeType === Node.ELEMENT_NODE ? (anchorNode as Element) : anchorNode.parentElement) : null
       const insideEditor = !!anchorElement?.closest(LEXICAL_EDITOR_ATTR_SELECTOR)
+      const insideNonEditableChrome = anchorElement?.closest(CONTENT_EDITABLE_SELECTOR)?.getAttribute('contenteditable') === 'false'
 
-      if (!selection || selection.rangeCount === 0 || selection.isCollapsed || !insideEditor) {
+      if (!selection || selection.rangeCount === 0 || selection.isCollapsed || !insideEditor || insideNonEditableChrome) {
         setRect(null)
         return
       }
