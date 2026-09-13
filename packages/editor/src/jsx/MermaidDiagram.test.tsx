@@ -25,7 +25,7 @@ afterEach(() => {
 });
 
 describe("MermaidDiagram", () => {
-  it("renders the returned SVG into the canvas after the debounce settles", async () => {
+  it("renders the returned SVG into the canvas after mount", async () => {
     renderMock.mockResolvedValue({ svg: "<svg data-testid='fake-svg'></svg>" });
 
     render(<MermaidDiagram chart="graph TD; A-->B;" />);
@@ -33,6 +33,17 @@ describe("MermaidDiagram", () => {
     await waitFor(() => expect(renderMock).toHaveBeenCalled());
     await waitFor(() => expect(screen.getByTestId("mermaid-canvas").innerHTML).toContain("fake-svg"));
     expect(screen.queryByTestId("mermaid-error")).toBeNull();
+  });
+
+  it("renders on first mount without waiting out the live-edit debounce", async () => {
+    renderMock.mockResolvedValue({ svg: "<svg></svg>" });
+
+    render(<MermaidDiagram chart="graph TD; A-->B;" />);
+
+    // Tight timeout, well under the 250ms live-edit debounce: if a first
+    // mount ever regresses back to going through that debounce, this fails
+    // on timeout rather than silently passing later.
+    await waitFor(() => expect(renderMock).toHaveBeenCalledTimes(1), { timeout: 100 });
   });
 
   it("shows an error message, not a crash, for invalid diagram syntax", async () => {
@@ -51,10 +62,17 @@ describe("MermaidDiagram", () => {
     expect(renderMock).not.toHaveBeenCalled();
   });
 
-  it("debounces rapid chart changes down to a single render call", async () => {
+  it("debounces rapid chart edits after mount down to a single render call", async () => {
     renderMock.mockResolvedValue({ svg: "<svg></svg>" });
 
     const { rerender } = render(<MermaidDiagram chart="graph TD; A" />);
+
+    // Let the immediate first-mount render (covered above) settle before
+    // exercising live-edit debounce behavior in isolation.
+    await waitFor(() => expect(renderMock).toHaveBeenCalledTimes(1));
+    expect(renderMock).toHaveBeenCalledWith(expect.any(String), "graph TD; A");
+    renderMock.mockClear();
+
     rerender(<MermaidDiagram chart="graph TD; A-" />);
     rerender(<MermaidDiagram chart="graph TD; A-->B;" />);
 

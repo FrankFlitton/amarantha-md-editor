@@ -23,10 +23,19 @@ export function setMermaidLoader(loader: MermaidLoader): void {
   customLoader = loader;
 }
 
-let mermaidModule: typeof import("mermaid") | null = null;
+let mermaidModulePromise: Promise<typeof import("mermaid")> | null = null;
 async function loadMermaid() {
-  mermaidModule ??= await (customLoader ? customLoader() : import("mermaid"));
-  return mermaidModule.default;
+  // Caches the in-flight promise, not just the resolved module, so the
+  // mount-time prefetch below and a render effect's own call dedupe into a
+  // single import()/customLoader() call instead of each kicking off their
+  // own fetch of the large mermaid chunk. Cleared on rejection so a later
+  // call can retry after a failed load.
+  mermaidModulePromise ??= (customLoader ? customLoader() : import("mermaid")).catch((err) => {
+    mermaidModulePromise = null;
+    throw err;
+  });
+  const mod = await mermaidModulePromise;
+  return mod.default;
 }
 
 const AM_VARS = [
@@ -138,6 +147,14 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [themeTick, setThemeTick] = useState(0);
+  const hasRenderedRef = useRef(false);
+
+  useEffect(() => {
+    // Overlaps the mermaid chunk's fetch/parse with the debounce window
+    // below instead of only starting after it. Errors are swallowed here —
+    // the render effect's own .catch already surfaces load failures.
+    void loadMermaid().catch(() => {});
+  }, []);
 
   useEffect(() => {
     const targets = new Set<Element>([document.documentElement]);
@@ -159,8 +176,11 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
       return;
     }
 
+    const isFirstRender = !hasRenderedRef.current;
+    hasRenderedRef.current = true;
+
     let cancelled = false;
-    const timer = setTimeout(() => {
+    const runRender = () => {
       const vars = readAmVars(containerRef.current);
       ensureInitialized(vars)
         .then((mermaid) => {
@@ -179,11 +199,24 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
           if (cancelled) return;
           setError(err instanceof Error ? err.message : "Invalid diagram syntax");
         });
-    }, 250);
+    };
+
+    if (isFirstRender) {
+      // The initial `chart` value is already a committed string, not a
+      // mid-keystroke draft — nothing to protect against, so render right
+      // away instead of sitting behind the debounce used to smooth live
+      // editing (see the `else` branch below).
+      runRender();
+    } else {
+      const timer = setTimeout(runRender, 250);
+      return () => {
+        cancelled = true;
+        clearTimeout(timer);
+      };
+    }
 
     return () => {
       cancelled = true;
-      clearTimeout(timer);
     };
   }, [chart, themeTick]);
 
