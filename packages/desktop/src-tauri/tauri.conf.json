@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "amarantha",
+  "productName": "Amarantha",
   "version": "0.1.1",
   "identifier": "com.franklinflitton.amarantha",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "amarantha",
+        "title": "Amarantha",
         "width": 800,
         "height": 600,
         "titleBarStyle": "Overlay",

@@ -12,7 +12,7 @@ export async function openDocumentInNewWindow(uri: string): Promise<void> {
   const label = `${WINDOW_LABEL_PREFIX}${crypto.randomUUID()}`;
   const webview = new WebviewWindow(label, {
     url: `index.html?open=${encodeURIComponent(uri)}`,
-    title: "amarantha",
+    title: "Amarantha",
     width: 800,
     height: 600,
     titleBarStyle: "overlay",
