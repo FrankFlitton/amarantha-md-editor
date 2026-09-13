@@ -1,22 +1,62 @@
-# @amarantha/vscode
+# Amarantha for VS Code
 
-A VS Code `CustomTextEditorProvider` for `.md`/`.mdx` files, wrapping `AmaranthaEditor` in a webview. The open `vscode.TextDocument` is the sole source of truth — edits are applied as `WorkspaceEdit`s (reconciled against the live document via `@amarantha/core`'s `reconcileMarkdown`), so native undo/redo, the dirty indicator, and Ctrl/Cmd+S all come from VS Code itself. See `docs/decisions.md` and `/Users/franklinflitton/.claude/plans/concurrent-wiggling-owl.md` for the full design rationale.
+A rich, source-preserving Markdown/MDX editor for VS Code. Edit as rich
+text — headings, bold, lists, links, custom JSX components — and the file
+on disk stays exactly as you wrote it. No silent reformatting on save.
 
-## Try it
+**[Try the live web demo →](https://amarantha.app)**
 
-1. Open the **repo root** (`amarantha-md-editor`) as your VS Code workspace — the F5 launch config lives at the repo root, pointing at this package.
-2. Press **F5** ("Run Amarantha Extension"). This builds the extension (`npm run build:vscode`) and opens an Extension Development Host window.
-3. In that window, open a `.md` file, right-click its tab (or the editor title) → **Reopen Editor With…** → **Amarantha**.
+## Usage
 
-Amarantha is registered with `priority: "option"`, not `"default"` — it won't replace VS Code's built-in text editor for markdown files unless you explicitly reopen with it.
+Amarantha registers as an *optional* editor for `.md`/`.mdx` files — it
+won't replace VS Code's built-in text editor automatically.
 
-## What's wired up
+1. Open a `.md` or `.mdx` file.
+2. Right-click the editor tab (or the editor title bar) → **Reopen Editor
+   With…** → **Amarantha**.
+3. Use the toolbar in the editor title bar to toggle between rich text and
+   source, show/hide frontmatter, and change typography.
 
-- Rich/Source toggle, per-repo `amarantha.config.json` discovery (component registry + frontmatter fields), pasted/dropped image handling (saved to an `assets/` folder next to the document), and font preferences (bundled Geist, curated Fontsource picks, or a custom Fontsource ID / system font).
-- JSON Schema-backed IntelliSense (autocomplete, hover docs, validation) when editing `amarantha.config.json` itself, via the `jsonValidation` contribution point in `package.json` pointing at `schemas/amarantha.config.schema.json`. Keep that schema in sync by hand with `AmaranthaConfig` (`packages/core/src/config.ts`) and `ComponentDefinition`/`FrontmatterFieldDefinition` (`packages/core/src/types.ts`) when those shapes change.
-- Colors follow VS Code's own active color theme (`src/webview/vscode-theme-adapter.css`) rather than Amarantha's own 10-theme picker — the more idiomatic choice for a VS Code extension.
+## Features
 
-## Not built here
+- **Source-preserving.** Formatting you didn't touch — list marker style,
+  quote style, line wrapping — isn't rewritten out from under you.
+- **Custom components, inline.** MDX components like diagrams or embeds
+  render right alongside your prose, driven by a simple JSON config
+  (`amarantha.config.json` at your workspace root) rather than hardcoded
+  support. Editing that config file gets autocomplete, hover docs, and
+  validation for free.
+- **Native VS Code integration.** Undo/redo, the dirty indicator, and
+  Ctrl/Cmd+S all come from VS Code itself — the open document is always
+  the source of truth.
+- **Image paste/drop.** Pasted or dropped images are saved to an `assets/`
+  folder next to the document and linked automatically.
+- **Typography.** Pick from bundled fonts (Geist, Inter, IBM Plex, and
+  more) or your own Fontsource ID / system font.
+- **Theme-aware.** Colors follow VS Code's own active color theme rather
+  than a separate picker.
 
-- A Diff mode (flagged in the plan as cross-host future work for `@amarantha/editor`) — VS Code's own git/diff commands still open its built-in plain-text diff view for `.md` files, unaffected by this extension.
-- `.vsix` packaging (`npm run package`) is wired but not yet dry-run — do that once the F5 flow above has been manually verified.
+## Known limitations
+
+- No dedicated diff view yet — VS Code's built-in plain-text diff still
+  opens for `.md`/`.mdx` files via git.
+
+## Development
+
+This extension lives in a monorepo alongside Amarantha's other hosts
+(desktop, web, Chrome). See the
+[repository](https://github.com/FrankFlitton/amarantha-md-editor) for the
+full source and [`docs/decisions.md`](https://github.com/FrankFlitton/amarantha-md-editor/blob/main/docs/decisions.md)
+for design rationale.
+
+To run from source:
+
+1. Open the **repo root** (`amarantha-md-editor`) as your VS Code
+   workspace — the F5 launch config lives there, pointing at this package.
+2. Press **F5** ("Run Amarantha Extension"). This builds the extension
+   (`npm run build:vscode`) and opens an Extension Development Host
+   window.
+3. In that window, follow the **Usage** steps above.
+
+Issues and PRs welcome — this project is early and moving fast, so it's
+worth opening an issue before a large change.

@@ -4,7 +4,7 @@
   "description": "A rich, source-preserving Markdown/MDX editor for VS Code.",
   "publisher": "amarantha",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "icon": "media/icon.png",
   "repository": {
